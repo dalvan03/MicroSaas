@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { format, parseISO, startOfWeek, endOfWeek, addDays, isSameDay } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek, addDays, isSameDay, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, Filter, Check, X, Plus, Search } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -54,7 +54,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Appointment, Professional, Service, InsertAppointment } from "@shared/schema";
+import { Appointment, Professional, Service, InsertAppointment, WorkSchedule } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -66,6 +66,10 @@ export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [openFilter, setOpenFilter] = useState(false);
   const [openNewAppointment, setOpenNewAppointment] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   
   // Invalidate appointments query when date changes
   useEffect(() => {
@@ -76,8 +80,14 @@ export default function SchedulePage() {
     status: "",
     serviceId: "",
   });
-  const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useMobile();
+  
+  // Time slots for the agenda view
+  const timeSlots = [
+    "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+    "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"
+  ];
 
   // Fetch appointments for the selected date
   const { data: appointments = [], isLoading: isAppointmentsLoading } = useQuery<Appointment[]>({
@@ -102,6 +112,12 @@ export default function SchedulePage() {
   // Fetch users
   const { data: users = [] } = useQuery<any[]>({
     queryKey: ["/api/users"],
+  });
+
+  // Fetch work schedules for the selected professional
+  const { data: workSchedules = [] } = useQuery<WorkSchedule[]>({
+    queryKey: ["/api/professionals", selectedProfessionalId ? parseInt(selectedProfessionalId) : null, "schedules"],
+    enabled: !!selectedProfessionalId,
   });
 
   // Create appointment mutation
@@ -179,8 +195,73 @@ export default function SchedulePage() {
         startTime: "",
         notes: "",
       });
+      setAvailableTimeSlots([]);
+      setSelectedProfessionalId("");
+      setSelectedServiceId("");
     }
   }, [openNewAppointment, selectedDate, form]);
+  
+  // Calculate available time slots when professional or service changes
+  useEffect(() => {
+    if (!selectedProfessionalId || !selectedServiceId) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+    
+    const professionalId = parseInt(selectedProfessionalId);
+    const serviceId = parseInt(selectedServiceId);
+    const service = services.find(s => s.id === serviceId);
+    
+    if (!service) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+    
+    // Get professional's work schedule for the selected date
+    const dayOfWeek = selectedDate.getDay();
+    const professionalSchedules = workSchedules.filter(ws => 
+      ws.professionalId === professionalId && ws.dayOfWeek === dayOfWeek
+    );
+    
+    if (professionalSchedules.length === 0) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+    
+    // For simplicity, use the first schedule found
+    const schedule = professionalSchedules[0];
+    const startTime = parse(schedule.startTime as string, "HH:mm:ss", new Date());
+    const endTime = parse(schedule.endTime as string, "HH:mm:ss", new Date());
+    
+    // Generate 30-minute slots
+    const slots = [];
+    let currentTime = startTime;
+    
+    while (currentTime < endTime) {
+      const timeString = format(currentTime, "HH:mm");
+      
+      // Check if this slot is available (not booked already)
+      const isSlotAvailable = !appointments.some(app => {
+        return app.professionalId === professionalId && 
+               app.startTime === timeString && 
+               format(new Date(app.date), "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
+      });
+      
+      // Check if there's enough time for the service
+      const serviceEndTime = new Date(currentTime);
+      serviceEndTime.setMinutes(serviceEndTime.getMinutes() + service.duration);
+      const isEnoughTime = serviceEndTime <= endTime;
+      
+      if (isSlotAvailable && isEnoughTime) {
+        slots.push(timeString);
+      }
+      
+      // Increment by 30 minutes
+      currentTime.setMinutes(currentTime.getMinutes() + 30);
+    }
+    
+    setAvailableTimeSlots(slots);
+  }, [selectedProfessionalId, selectedServiceId, selectedDate, services, appointments, workSchedules]);
 
   // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -239,6 +320,16 @@ export default function SchedulePage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Agenda</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Buscar cliente..."
+                className="w-full md:w-[200px] pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
             <Popover open={openFilter} onOpenChange={setOpenFilter}>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -355,9 +446,9 @@ export default function SchedulePage() {
 
               <Dialog open={openNewAppointment} onOpenChange={setOpenNewAppointment}>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="w-full sm:w-auto">
+                  <Button size="sm" className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700">
                     <Plus className="mr-2 h-4 w-4" />
-                    Novo Agendamento
+                    Agendar
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
@@ -403,7 +494,10 @@ export default function SchedulePage() {
                           <FormItem>
                             <FormLabel>Profissional</FormLabel>
                             <Select
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedProfessionalId(value);
+                              }}
                               defaultValue={field.value}
                             >
                               <FormControl>
@@ -430,7 +524,10 @@ export default function SchedulePage() {
                           <FormItem>
                             <FormLabel>Serviço</FormLabel>
                             <Select
-                              onValueChange={field.onChange}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedServiceId(value);
+                              }}
                               defaultValue={field.value}
                             >
                               <FormControl>
@@ -452,14 +549,97 @@ export default function SchedulePage() {
                       />
                       <FormField
                         control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Data</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP", { locale: ptBR })
+                                    ) : (
+                                      <span>Selecione uma data</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => {
+                                    if (date) {
+                                      field.onChange(date);
+                                    }
+                                  }}
+                                  disabled={(date) => {
+                                    // Disable past dates
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    return date < today;
+                                  }}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
                         name="startTime"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Horário</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
+                            <div className="space-y-2">
+                              <FormControl>
+                                <Input type="time" {...field} />
+                              </FormControl>
+                              
+                              {availableTimeSlots.length > 0 && (
+                                <div className="mt-2">
+                                  <Label className="text-sm font-medium">Horários Disponíveis</Label>
+                                  <div className="mt-1 max-h-32 overflow-y-auto rounded-md border border-input p-2">
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {availableTimeSlots.map((timeSlot) => (
+                                        <Button
+                                          key={timeSlot}
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          className={cn(
+                                            "text-center",
+                                            field.value === timeSlot && "bg-purple-100 border-purple-500 text-purple-700"
+                                          )}
+                                          onClick={() => field.onChange(timeSlot)}
+                                        >
+                                          {timeSlot}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {selectedProfessionalId && selectedServiceId && availableTimeSlots.length === 0 && (
+                                <p className="text-sm text-muted-foreground">
+                                  Não há horários disponíveis para esta data e profissional
+                                </p>
+                              )}
+                              
+                              <FormMessage />
+                            </div>
                           </FormItem>
                         )}
                       />
@@ -489,49 +669,126 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Agendamentos para {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isAppointmentsLoading ? (
-              <div className="flex justify-center items-center h-40">
-                <p>Carregando agendamentos...</p>
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
+          {/* Left sidebar with calendar */}
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-center">{format(selectedDate, "MMMM yyyy", { locale: ptBR })}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                className="rounded-md border w-full"
+                initialFocus
+              />
+              
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">Profissionais</h3>
+                <div className="space-y-2">
+                  {professionals.map((professional) => (
+                    <div key={professional.id} className="flex items-center">
+                      <div className="h-2 w-2 rounded-full bg-purple-600 mr-2"></div>
+                      <span className="text-sm">{professional.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : filteredAppointments.length === 0 ? (
-              <div className="flex justify-center items-center h-40">
-                <p>Nenhum agendamento encontrado para esta data.</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Horário</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAppointments.map((appointment) => {
-                    const professional = professionals.find(p => p.id === appointment.professionalId);
-                    const service = services.find(s => s.id === appointment.serviceId);
-                    return (
-                      <TableRow key={appointment.id}>
-                        <TableCell>{appointment.startTime.substring(0, 5)}</TableCell>
-                        <TableCell>{users.find(u => u.id === appointment.userId)?.name || `Cliente ${appointment.userId}`}</TableCell>
-                        <TableCell>{professional?.name || "Desconhecido"}</TableCell>
-                        <TableCell>{service?.name || "Desconhecido"}</TableCell>
-                        <TableCell>{getStatusBadge(appointment.status)}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Right side with agenda view */}
+          <Card className="md:col-span-5">
+            <CardHeader className="pb-2">
+              <CardTitle>Agenda: {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isAppointmentsLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <p>Carregando agendamentos...</p>
+                </div>
+              ) : (
+                <div className="overflow-auto max-h-[calc(100vh-260px)]">
+                  <div className="min-w-full divide-y divide-gray-200">
+                    {/* Header with professionals */}
+                    <div className="grid grid-cols-[80px_1fr] border-b">
+                      <div className="py-0.5 text-[10px] font-medium text-gray-500">Horário</div>
+                      <div className="grid grid-cols-1 divide-x">
+                        {filters.professionalId ? (
+                          <div className="py-2 px-3 text-sm font-medium text-center">
+                            {professionals.find(p => p.id.toString() === filters.professionalId)?.name || "Profissional"}
+                          </div>
+                        ) : (
+                          professionals.map(professional => (
+                            <div key={professional.id} className="py-2 px-3 text-sm font-medium text-center">
+                              {professional.name}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Time slots */}
+                    {timeSlots.map((timeSlot) => {
+                      // Find appointments for this time slot
+                      const slotAppointments = filteredAppointments.filter(app => 
+                        app.startTime.substring(0, 5) === timeSlot
+                      );
+                      
+                      return (
+                        <div key={timeSlot} className="grid grid-cols-[80px_1fr] hover:bg-gray-50">
+                          <div className="py-0.5 text-[10px] text-gray-500 border-r">{timeSlot}</div>
+                          <div className="grid grid-cols-1 divide-x">
+                            {filters.professionalId ? (
+                              <div className="relative h-5 p-0.25">
+                                {slotAppointments
+                                  .filter(app => app.professionalId.toString() === filters.professionalId)
+                                  .map(appointment => {
+                                    const service = services.find(s => s.id === appointment.serviceId);
+                                    const user = users.find(u => u.id === appointment.userId);
+                                    return (
+                                      <div 
+                                        key={appointment.id}
+                                        className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
+                                      >
+                                        <div className="font-medium">{user?.name || `Cliente ${appointment.userId}`}</div>
+                                        <div className="text-purple-700">{service?.name || "Serviço"}</div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            ) : (
+                              professionals.map(professional => {
+                                const profAppointment = slotAppointments.find(app => app.professionalId === professional.id);
+                                return (
+                                  <div key={professional.id} className="relative h-5 p-0.25">
+                                    {profAppointment && (
+                                      <div 
+                                        className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
+                                      >
+                                        <div className="font-medium">
+                                          {users.find(u => u.id === profAppointment.userId)?.name || `Cliente ${profAppointment.userId}`}
+                                        </div>
+                                        <div className="text-purple-700">
+                                          {services.find(s => s.id === profAppointment.serviceId)?.name || "Serviço"}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Sidebar>
   );

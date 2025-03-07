@@ -58,16 +58,6 @@ app.use((req, res, next) => {
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
-<<<<<<< HEAD
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-=======
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   const startServer = (retryPort = port) => {
     server.listen({
@@ -86,5 +76,4 @@ app.use((req, res, next) => {
   };
   
   startServer();
->>>>>>> 857c171 (first commit)
 })();

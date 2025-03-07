@@ -2,10 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-<<<<<<< HEAD
-=======
 import { setupUserRoutes } from "./routes-users";
->>>>>>> 857c171 (first commit)
 import { 
   insertProfessionalSchema, 
   insertServiceSchema, 
@@ -20,12 +17,9 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
-<<<<<<< HEAD
-=======
   
   // Setup user routes
   setupUserRoutes(app);
->>>>>>> 857c171 (first commit)
 
   // API routes
   // All prefixed with /api

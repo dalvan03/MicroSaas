@@ -8,29 +8,18 @@ import {
   transactions, type Transaction, type InsertTransaction
 } from "@shared/schema";
 import session from "express-session";
-<<<<<<< HEAD
-import connectPg from "connect-pg-simple";
-import { db } from "./db";
-import { eq, and, inArray } from "drizzle-orm";
-
-const PostgresSessionStore = connectPg(session);
-=======
 import MemoryStore from "memorystore";
 import { db } from "./db";
 import { eq, and, inArray } from "drizzle-orm";
 import { format } from "date-fns";
 
 const MemoryStoreSession = MemoryStore(session);
->>>>>>> 857c171 (first commit)
 
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-<<<<<<< HEAD
-=======
   getAllUsers(): Promise<User[]>;
->>>>>>> 857c171 (first commit)
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
 
@@ -84,16 +73,8 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-<<<<<<< HEAD
-    this.sessionStore = new PostgresSessionStore({
-      conObject: {
-        connectionString: process.env.DATABASE_URL,
-      },
-      createTableIfMissing: true,
-=======
     this.sessionStore = new MemoryStoreSession({
       checkPeriod: 86400000 // prune expired entries every 24h
->>>>>>> 857c171 (first commit)
     });
 
     // Add seed data for initial testing
@@ -111,13 +92,10 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-<<<<<<< HEAD
-=======
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
 
->>>>>>> 857c171 (first commit)
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
@@ -183,8 +161,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteService(id: number): Promise<boolean> {
-<<<<<<< HEAD
-=======
     // Check if service exists first
     const service = await this.getService(id);
     if (!service) {
@@ -198,7 +174,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(professionalServices).where(eq(professionalServices.serviceId, id));
     
     // Finally delete the service
->>>>>>> 857c171 (first commit)
     const result = await db.delete(services).where(eq(services.id, id));
     return result.count > 0;
   }
@@ -311,12 +286,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAppointmentsByDate(date: Date): Promise<Appointment[]> {
-<<<<<<< HEAD
-    const dateStr = date.toISOString().split('T')[0];
-    return await db.select()
-      .from(appointments)
-      .where(eq(appointments.date, dateStr));
-=======
     const dateStr = format(date, "yyyy-MM-dd");
     console.log(`Fetching appointments for date: ${dateStr}`);
     const result = await db.select()
@@ -324,7 +293,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(appointments.date, dateStr));
     console.log(`Found ${result.length} appointments for date ${dateStr}`);
     return result;
->>>>>>> 857c171 (first commit)
   }
 
   async createAppointment(insertAppointment: InsertAppointment): Promise<Appointment> {
@@ -383,35 +351,21 @@ export class DatabaseStorage implements IStorage {
 
   private async seedData() {
     try {
-<<<<<<< HEAD
-      // Check if data already exists
-      const userCount = await db.select({ count: users }).from(users);
-      if (userCount.length > 0 && userCount[0].count > 0) {
-        console.log("Database already seeded, skipping seed data");
-=======
       // Check if admin user already exists
       const adminEmail = "admin@salao.com";
       const existingAdmin = await db.select().from(users).where(eq(users.email, adminEmail));
       
       if (existingAdmin.length > 0) {
         console.log("Admin user already exists, skipping seed data");
->>>>>>> 857c171 (first commit)
         return;
       }
 
       // Add an admin user for initial access
       const admin = await this.createUser({
-<<<<<<< HEAD
-        username: "admin",
-        password: "$2b$10$oByNKDPxe4MRpq7/qCTF5.Oa2iLJSp6BW0I4NL7B1V4JWvYnQjyEm", // "admin123"
-        name: "Administrator",
-        email: "admin@salao.com",
-=======
         username: "123456",
         password: "123456", // Plain text password as requested
         name: "Administrator",
         email: adminEmail,
->>>>>>> 857c171 (first commit)
         role: "admin",
         phone: "",
         address: "",

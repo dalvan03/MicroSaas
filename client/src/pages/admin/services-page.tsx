@@ -222,180 +222,6 @@ export default function ServicesPage() {
   });
   
   return (
-<<<<<<< HEAD
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      
-      <div className="flex-1 flex flex-col ml-64">
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold tracking-tight">Meus Serviços</h1>
-            
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Buscar serviço..."
-                  className="w-[250px] pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Dialog open={newServiceOpen} onOpenChange={setNewServiceOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Novo Serviço
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Criar Novo Serviço</DialogTitle>
-                    <DialogDescription>
-                      Preencha os dados abaixo para criar um novo serviço.
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmitNewService)} className="space-y-4 pt-4">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Nome do Serviço</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Corte de Cabelo" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Descrição</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Descreva o serviço" 
-                                rows={3} 
-                                {...field} 
-                                value={field.value || ""}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="duration"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Duração (minutos)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min={5}
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={form.control}
-                          name="price"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Preço (R$)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min={0}
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <FormField
-                        control={form.control}
-                        name="active"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                              <FormLabel>Serviço Ativo</FormLabel>
-                              <FormDescription>
-                                Serviços inativos não aparecem para agendamento
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setNewServiceOpen(false)}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={createServiceMutation.isPending}>
-                          {createServiceMutation.isPending ? "Criando..." : "Criar Serviço"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Lista de Serviços</CardTitle>
-              <CardDescription>
-                Gerencie os serviços oferecidos pelo seu estabelecimento.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isServicesLoading ? (
-                <div className="text-center py-4">Carregando serviços...</div>
-              ) : filteredServices.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  {searchQuery ? "Nenhum serviço encontrado com este termo." : "Nenhum serviço cadastrado."}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[300px]">Serviço</TableHead>
-                      <TableHead>Duração</TableHead>
-                      <TableHead>Preço</TableHead>
-=======
     <Sidebar>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -566,7 +392,6 @@ export default function ServicesPage() {
                       <TableHead className="w-[200px] sm:w-[300px]">Serviço</TableHead>
                       <TableHead className="hidden sm:table-cell">Duração</TableHead>
                       <TableHead className="hidden sm:table-cell">Preço</TableHead>
->>>>>>> 857c171 (first commit)
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
@@ -575,20 +400,11 @@ export default function ServicesPage() {
                     {filteredServices.map((service) => (
                       <TableRow key={service.id}>
                         <TableCell>
-<<<<<<< HEAD
-                          <div className="flex flex-col">
-=======
                           <div className="flex flex-col gap-1">
->>>>>>> 857c171 (first commit)
                             <span className="font-medium">{service.name}</span>
                             {service.description && (
                               <span className="text-sm text-muted-foreground">{service.description}</span>
                             )}
-<<<<<<< HEAD
-                          </div>
-                        </TableCell>
-                        <TableCell>
-=======
                             <div className="flex items-center gap-4 sm:hidden">
                               <div className="flex items-center">
                                 <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
@@ -602,17 +418,12 @@ export default function ServicesPage() {
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
->>>>>>> 857c171 (first commit)
                           <div className="flex items-center">
                             <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
                             <span>{service.duration} minutos</span>
                           </div>
                         </TableCell>
-<<<<<<< HEAD
-                        <TableCell>
-=======
                         <TableCell className="hidden sm:table-cell">
->>>>>>> 857c171 (first commit)
                           <div className="flex items-center">
                             <DollarSign className="h-4 w-4 mr-1 text-muted-foreground" />
                             <span>R$ {service.price.toFixed(2)}</span>
@@ -653,10 +464,7 @@ export default function ServicesPage() {
                     ))}
                   </TableBody>
                 </Table>
-<<<<<<< HEAD
-=======
               </div>
->>>>>>> 857c171 (first commit)
               )}
             </CardContent>
           </Card>
@@ -664,11 +472,7 @@ export default function ServicesPage() {
           {/* Edit Service Dialog */}
           {editService && (
             <Dialog open={!!editService} onOpenChange={(open) => !open && setEditService(null)}>
-<<<<<<< HEAD
-              <DialogContent className="sm:max-w-[500px]">
-=======
               <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
->>>>>>> 857c171 (first commit)
                 <DialogHeader>
                   <DialogTitle>Editar Serviço</DialogTitle>
                   <DialogDescription>
@@ -811,13 +615,7 @@ export default function ServicesPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-<<<<<<< HEAD
-        </div>
-      </div>
-    </div>
-=======
        </div>
           </Sidebar>
->>>>>>> 857c171 (first commit)
   );
 }

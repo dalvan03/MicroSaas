@@ -55,10 +55,7 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [clientDetailsOpen, setClientDetailsOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
-<<<<<<< HEAD
-=======
   const isMobile = useMobile();
->>>>>>> 857c171 (first commit)
 
   // Fetch clients (all users with role "client")
   const { data: allUsers = [], isLoading: isUsersLoading } = useQuery<User[]>({

@@ -44,10 +44,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck } from "lucide-react";
+import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 
 export default function ClientsPage() {
   const { toast } = useToast();
@@ -87,6 +88,25 @@ export default function ClientsPage() {
       return [];
     },
   });
+
+  // Mock data for client ranking (in a real app, this would come from the backend)
+  const topClients = [
+    { id: 1, name: "Maria Silva", visits: 24, totalSpent: 2800, lastVisit: "2023-10-15" },
+    { id: 2, name: "João Santos", visits: 18, totalSpent: 2100, lastVisit: "2023-10-20" },
+    { id: 3, name: "Ana Oliveira", visits: 15, totalSpent: 1750, lastVisit: "2023-10-25" },
+  ];
+
+  // Mock data for last professional (in a real app, this would come from the backend)
+  const getLastProfessional = (clientId: number) => {
+    const professionals = [
+      { id: 1, name: "Carlos Ferreira", specialty: "Cabeleireiro" },
+      { id: 2, name: "Juliana Mendes", specialty: "Manicure" },
+      { id: 3, name: "Roberto Alves", specialty: "Barbeiro" },
+    ];
+    
+    // Simulate returning a professional based on client ID
+    return professionals[clientId % professionals.length];
+  };
 
   // Create new client mutation
   const createClientMutation = useMutation({
@@ -304,6 +324,44 @@ export default function ClientsPage() {
             </Dialog>
           </div>
         </div>
+        
+        {/* Client Ranking Section */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Award className="h-5 w-5 text-purple-600" />
+              Ranking de Clientes
+            </CardTitle>
+            <CardDescription>
+              Os clientes mais frequentes do seu salão
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {topClients.map((client, index) => (
+                <div key={client.id} className="flex items-start space-x-4 p-3 rounded-lg border">
+                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-700">
+                    {index === 0 ? (
+                      <Star className="h-5 w-5 fill-current" />
+                    ) : (
+                      <span className="font-bold">{index + 1}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium">{client.name}</h4>
+                    <div className="flex flex-col mt-1">
+                      <span className="text-xs text-muted-foreground">{client.visits} visitas</span>
+                      <span className="text-xs text-muted-foreground">R$ {client.totalSpent.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="ml-auto">
+                    Top {index + 1}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
         
         <Card>
           <CardHeader>

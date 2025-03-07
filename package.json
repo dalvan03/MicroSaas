@@ -45,10 +45,6 @@
     "@tanstack/react-query": "^5.60.5",
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^5.1.1",
-<<<<<<< HEAD
-=======
-    "better-sqlite3": "^11.8.1",
->>>>>>> 857c171 (first commit)
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",

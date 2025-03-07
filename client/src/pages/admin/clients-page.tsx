@@ -400,42 +400,55 @@ export default function ClientsPage() {
                         <TableHead>Nome</TableHead>
                         <TableHead className="hidden sm:table-cell">Email</TableHead>
                         <TableHead className="hidden md:table-cell">Telefone</TableHead>
+                        <TableHead className="hidden lg:table-cell">Último Profissional</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredClients.map((client) => (
-                        <TableRow key={client.id}>
-                          <TableCell className="font-medium">{client.name}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{client.email}</TableCell>
-                          <TableCell className="hidden md:table-cell">{client.phone || "-"}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedClient(client);
-                                    setClientDetailsOpen(true);
-                                  }}
-                                >
-                                  Ver detalhes
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>Editar</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {filteredClients.map((client) => {
+                        const lastProfessional = getLastProfessional(client.id);
+                        return (
+                          <TableRow key={client.id}>
+                            <TableCell className="font-medium">{client.name}</TableCell>
+                            <TableCell className="hidden sm:table-cell">{client.email}</TableCell>
+                            <TableCell className="hidden md:table-cell">{client.phone || "-"}</TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              {lastProfessional ? (
+                                <div className="flex items-center gap-2">
+                                  <Scissors className="h-3 w-3 text-muted-foreground" />
+                                  <span>{lastProfessional.name}</span>
+                                  <span className="text-xs text-muted-foreground">({lastProfessional.specialty})</span>
+                                </div>
+                              ) : "-"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedClient(client);
+                                      setClientDetailsOpen(true);
+                                    }}
+                                  >
+                                    Ver detalhes
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Editar</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-destructive">
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </ScrollArea>

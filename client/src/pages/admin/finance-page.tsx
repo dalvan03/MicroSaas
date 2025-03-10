@@ -33,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter } from "lucide-react";
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit } from "lucide-react";
 import { format, subDays, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -480,10 +480,23 @@ export default function FinancePage() {
                   <TableCell>{format(subDays(new Date(), 3), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 120,00</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      Registrar Pagamento
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <Button variant="outline" size="sm">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Registrar Pagamento
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                        <X className="h-4 w-4 mr-1" />
+                        Não Compareceu
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                        Remarcar
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -492,10 +505,23 @@ export default function FinancePage() {
                   <TableCell>{format(subDays(new Date(), 5), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 70,00</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      Registrar Pagamento
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <Button variant="outline" size="sm">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Registrar Pagamento
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                        <X className="h-4 w-4 mr-1" />
+                        Não Compareceu
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                        Remarcar
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>

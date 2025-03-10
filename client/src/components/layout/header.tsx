@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function Header() {
+export function Header({ transparent = false }) {
   const { user, logoutMutation } = useAuth();
   const isMobile = useMobile();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -25,16 +25,34 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b bg-background shadow-sm">
-      <div className="px-4 sm:px-6 md:px-8 mx-auto flex h-14 sm:h-16 items-center justify-between">
-        <Link href="/">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <Scissors className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
-            <span className="text-base sm:text-xl font-semibold truncate">Salão de Beleza</span>
-          </div>
-        </Link>
+    <header className={`absolute top-6 z-30 w-full ${transparent ? 'bg-transparent border-none' : 'border-b bg-background shadow-sm'}`}>
+      <div className="px-4 sm:px-6 md:px-8 mx-auto flex h-14 sm:h-16 items-center justify-between relative">
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex-1">
+          {!transparent && (
+            <Link href="/">
+              <div className="flex items-center gap-2 cursor-pointer">
+                <Scissors className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                <span className="text-base sm:text-xl font-semibold truncate">Salão de Beleza</span>
+              </div>
+            </Link>
+          )}
+        </div>
+        
+        {/* Centered Logo */}
+        {transparent && (
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+            <Link href="/">
+              <div className="flex flex-col items-center gap-1 cursor-pointer">
+                <Scissors className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+                <span className="text-base sm:text-xl font-semibold text-white">Salão de Beleza</span>
+              </div>
+            </Link>
+          </div>
+        )}
+        
+        <div className="flex-1 flex justify-end">
+          <div className="flex items-center gap-2 sm:gap-4">
           {isMobile && !user && (
             <Button variant="outline" size="sm" asChild>
               <Link href="/auth">Entrar</Link>
@@ -86,6 +104,7 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          </div>
         </div>
       </div>
     </header>

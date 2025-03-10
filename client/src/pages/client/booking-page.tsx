@@ -38,6 +38,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 export default function BookingPage() {
   const { user } = useAuth();
@@ -213,10 +220,33 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+      <Header transparent={true} />
+      
+      {/* Hero Banner Carousel */}
+      <div className="relative w-full h-[75vh] bg-gradient-to-r from-purple-700 to-purple-900">
+        <Carousel className="w-full h-full">
+          <CarouselContent className="h-full">
+            {/* First Slide */}
+            <CarouselItem className="h-full">
+              <div className="relative w-full h-full">
+                <img 
+                  src="https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80" 
+                  alt="Salão de beleza" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-start pt-32 sm:pt-40 md:pt-60 text-center px-4 sm:px-6">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">Transforme seu visual</h1>
+                  <p className="text-white text-base sm:text-lg md:text-xl opacity-90 mb-6 max-w-3xl">Nossos profissionais estão prontos para realçar sua beleza natural</p>
+                </div>
+              </div>
+            </CarouselItem>
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-6xl">
-        <div className="mb-6 sm:mb-8 text-center">
+          </CarouselContent>
+        </Carousel>
+      </div>
+
+      <main className="flex-1 container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-6xl -mt-10 relative z-20">
+        <div className="mb-12 sm:mb-16 text-center mt-8">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamento de Serviços</h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Escolha o serviço, data, horário e profissional para agendar seu atendimento

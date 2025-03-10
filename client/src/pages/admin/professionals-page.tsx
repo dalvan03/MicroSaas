@@ -1044,36 +1044,7 @@ export default function ProfessionalsPage() {
                           }}
                           isLoading={addWorkScheduleMutation.isPending || deleteWorkScheduleMutation.isPending}
                         />
-                        
-                        {/* Display existing schedules for reference */}
-                        {workSchedules.length > 0 && (
-                          <div className="mt-6">
-                            <h4 className="text-sm font-medium mb-2">Horários Atuais</h4>
-                            <div className="space-y-2">
-                              {workSchedules.map((schedule) => (
-                                <div key={schedule.id} className="flex justify-between items-center rounded-md border p-3">
-                                  <div className="flex items-center">
-                                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                    <div>
-                                      <p className="text-sm font-medium">{getDayName(schedule.dayOfWeek)}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {schedule.startTime} - {schedule.endTime}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => deleteWorkScheduleMutation.mutate(schedule.id)}
-                                    disabled={deleteWorkScheduleMutation.isPending}
-                                  >
-                                    <Trash className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                                         
                       </TabsContent>
                     </Tabs>
                   </div>

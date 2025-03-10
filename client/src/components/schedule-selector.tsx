@@ -11,11 +11,14 @@ interface ScheduleDay {
   enabled: boolean;
   startTime: string;
   endTime: string;
+  lunchStartTime: string;
+  lunchEndTime: string;
+  hasLunchBreak: boolean;
 }
 
 interface ScheduleSelectorProps {
-  onSave: (schedules: Omit<ScheduleDay, "enabled">[]) => void;
-  initialSchedules?: Omit<ScheduleDay, "enabled">[];
+  onSave: (schedules: Omit<ScheduleDay, "enabled" | "hasLunchBreak">[]) => void;
+  initialSchedules?: Omit<ScheduleDay, "enabled" | "hasLunchBreak">[];
   isLoading?: boolean;
 }
 
@@ -23,13 +26,13 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
   // Initialize days of the week with default values
   const [schedules, setSchedules] = useState<ScheduleDay[]>(() => {
     const defaultSchedules: ScheduleDay[] = [
-      { dayOfWeek: 1, enabled: false, startTime: "08:00", endTime: "18:00" },
-      { dayOfWeek: 2, enabled: false, startTime: "08:00", endTime: "18:00" },
-      { dayOfWeek: 3, enabled: false, startTime: "08:00", endTime: "18:00" },
-      { dayOfWeek: 4, enabled: false, startTime: "08:00", endTime: "18:00" },
-      { dayOfWeek: 5, enabled: false, startTime: "08:00", endTime: "18:00" },
-      { dayOfWeek: 6, enabled: false, startTime: "08:00", endTime: "12:00" },
-      { dayOfWeek: 0, enabled: false, startTime: "08:00", endTime: "12:00" },
+      { dayOfWeek: 1, enabled: false, startTime: "08:00", endTime: "18:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 2, enabled: false, startTime: "08:00", endTime: "18:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 3, enabled: false, startTime: "08:00", endTime: "18:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 4, enabled: false, startTime: "08:00", endTime: "18:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 5, enabled: false, startTime: "08:00", endTime: "18:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 6, enabled: false, startTime: "08:00", endTime: "12:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
+      { dayOfWeek: 0, enabled: false, startTime: "08:00", endTime: "12:00", lunchStartTime: "12:00", lunchEndTime: "13:00", hasLunchBreak: false },
     ];
 
     // Apply initial schedules if provided
@@ -65,8 +68,17 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
     );
   };
 
+  // Toggle lunch break for a day
+  const handleToggleLunchBreak = (dayOfWeek: number) => {
+    setSchedules(prev => 
+      prev.map(day => 
+        day.dayOfWeek === dayOfWeek ? { ...day, hasLunchBreak: !day.hasLunchBreak } : day
+      )
+    );
+  };
+
   // Handle time change with validation
-  const handleTimeChange = (dayOfWeek: number, field: "startTime" | "endTime", value: string) => {
+  const handleTimeChange = (dayOfWeek: number, field: "startTime" | "endTime" | "lunchStartTime" | "lunchEndTime", value: string) => {
     setSchedules(prev => 
       prev.map(day => {
         if (day.dayOfWeek === dayOfWeek) {
@@ -88,6 +100,33 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
           } else if (field === "endTime" && updatedDay.endTime <= updatedDay.startTime) {
             // Don't update if end time would be before or equal to start time
             return day;
+          } else if (field === "lunchStartTime") {
+            // Validate lunch start time is within work hours
+            if (updatedDay.lunchStartTime < updatedDay.startTime || updatedDay.lunchStartTime >= updatedDay.endTime) {
+              return day;
+            }
+            // Validate lunch end time is after lunch start time
+            if (updatedDay.lunchEndTime <= updatedDay.lunchStartTime) {
+              // Automatically adjust lunch end time to be 1 hour after lunch start time
+              const [hours, minutes] = updatedDay.lunchStartTime.split(":").map(Number);
+              let newHours = hours + 1;
+              
+              if (newHours >= 24) {
+                newHours = newHours % 24;
+              }
+              
+              updatedDay.lunchEndTime = `${newHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+              
+              // Ensure lunch end time doesn't exceed work end time
+              if (updatedDay.lunchEndTime > updatedDay.endTime) {
+                updatedDay.lunchEndTime = updatedDay.endTime;
+              }
+            }
+          } else if (field === "lunchEndTime") {
+            // Validate lunch end time is within work hours and after lunch start time
+            if (updatedDay.lunchEndTime <= updatedDay.lunchStartTime || updatedDay.lunchEndTime > updatedDay.endTime) {
+              return day;
+            }
           }
           
           return updatedDay;
@@ -101,10 +140,12 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
   const handleSave = () => {
     const enabledSchedules = schedules
       .filter(day => day.enabled)
-      .map(({ dayOfWeek, startTime, endTime }) => ({ 
+      .map(({ dayOfWeek, startTime, endTime, lunchStartTime, lunchEndTime, hasLunchBreak }) => ({ 
         dayOfWeek, 
         startTime, 
-        endTime 
+        endTime,
+        lunchStartTime: hasLunchBreak ? lunchStartTime : null,
+        lunchEndTime: hasLunchBreak ? lunchEndTime : null
       }));
     
     onSave(enabledSchedules);
@@ -138,25 +179,59 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
                   </Label>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {day.enabled ? "Aberto" : "Fechado"}
+                  {day.enabled ? "Disponivel" : "Folga"}
                 </div>
               </div>
               
               {day.enabled && (
-                <div className="flex items-center space-x-2 ml-7">
-                  <Input
-                    type="time"
-                    value={day.startTime}
-                    onChange={(e) => handleTimeChange(day.dayOfWeek, "startTime", e.target.value)}
-                    className="w-24"
-                  />
-                  <span className="text-muted-foreground">—</span>
-                  <Input
-                    type="time"
-                    value={day.endTime}
-                    onChange={(e) => handleTimeChange(day.dayOfWeek, "endTime", e.target.value)}
-                    className="w-24"
-                  />
+                <div className="flex flex-col space-y-3 ml-7">
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="time"
+                      value={day.startTime}
+                      onChange={(e) => handleTimeChange(day.dayOfWeek, "startTime", e.target.value)}
+                      className="w-24"
+                    />
+                    <span className="text-muted-foreground">—</span>
+                    <Input
+                      type="time"
+                      value={day.endTime}
+                      onChange={(e) => handleTimeChange(day.dayOfWeek, "endTime", e.target.value)}
+                      className="w-24"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id={`lunch-${day.dayOfWeek}`} 
+                        checked={day.hasLunchBreak}
+                        onCheckedChange={() => handleToggleLunchBreak(day.dayOfWeek)}
+                        size="sm"
+                      />
+                      <Label htmlFor={`lunch-${day.dayOfWeek}`} className="text-sm">
+                        Horário de Almoço
+                      </Label>
+                    </div>
+                  </div>
+                  
+                  {day.hasLunchBreak && (
+                    <div className="flex items-center space-x-2 ml-7">
+                      <Input
+                        type="time"
+                        value={day.lunchStartTime}
+                        onChange={(e) => handleTimeChange(day.dayOfWeek, "lunchStartTime", e.target.value)}
+                        className="w-24"
+                      />
+                      <span className="text-muted-foreground">—</span>
+                      <Input
+                        type="time"
+                        value={day.lunchEndTime}
+                        onChange={(e) => handleTimeChange(day.dayOfWeek, "lunchEndTime", e.target.value)}
+                        className="w-24"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

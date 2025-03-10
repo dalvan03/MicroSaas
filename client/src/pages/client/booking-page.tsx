@@ -245,12 +245,9 @@ export default function BookingPage() {
         </Carousel>
       </div>
 
-      <main className="flex-1 container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-6xl -mt-10 relative z-20">
+      <main className="flex-1 w-full px-4 sm:px-6 py-6 sm:py-8 -mt-40 relative z-20">
         <div className="mb-12 sm:mb-16 text-center mt-8">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamento de Serviços</h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            Escolha o serviço, data, horário e profissional para agendar seu atendimento
-          </p>
         </div>
 
         {/* Em dispositivos móveis, use Tabs para navegação entre as etapas */}

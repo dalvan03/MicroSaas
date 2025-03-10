@@ -223,7 +223,7 @@ export default function BookingPage() {
       <Header transparent={true} />
       
       {/* Hero Banner Carousel */}
-      <div className="relative w-full h-[75vh] bg-gradient-to-r from-purple-700 to-purple-900">
+      <div className="relative w-full h-[40vh] sm:h-[60vh] md:h-[75vh] bg-gradient-to-r from-purple-700 to-purple-900">
         <Carousel className="w-full h-full">
           <CarouselContent className="h-full">
             {/* First Slide */}
@@ -232,11 +232,11 @@ export default function BookingPage() {
                 <img 
                   src="https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80" 
                   alt="Salão de beleza" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-start pt-32 sm:pt-40 md:pt-60 text-center px-4 sm:px-6">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">Sinta o Poder</h1>
-                  <p className="text-white text-base sm:text-lg md:text-xl opacity-90 mb-6 max-w-3xl">Nossos profissionais cortam como nenhum outro</p>
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-start pt-20 sm:pt-32 md:pt-60 text-center px-4 sm:px-6">
+                  <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-4">Sinta o Poder</h1>
+                  <p className="text-white text-sm sm:text-base md:text-xl opacity-90 mb-4 sm:mb-6 max-w-3xl">Nossos profissionais cortam como nenhum outro</p>
                 </div>
               </div>
             </CarouselItem>

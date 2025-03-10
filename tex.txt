@@ -1,6 +1,3 @@
 oi, alguem me ouve.
 eu te ouço
-<<<<<<< HEAD
-=======
 harbes
->>>>>>> origin/main

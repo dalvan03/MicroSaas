@@ -271,7 +271,6 @@ export default function ProfessionalsPage() {
     email: z.string().email("Email inválido"),
     phone: z.string().min(1, "Telefone é obrigatório"),
     cpf: z.string().min(1, "CPF é obrigatório"),
-    address: z.string().min(1, "Endereço é obrigatório"),
     profilePicture: z.string().optional(),
     active: z.boolean().default(true),
   });
@@ -284,7 +283,6 @@ export default function ProfessionalsPage() {
       email: "",
       phone: "",
       cpf: "",
-      address: "",
       profilePicture: "",
       active: true,
     },
@@ -298,7 +296,6 @@ export default function ProfessionalsPage() {
       email: "",
       phone: "",
       cpf: "",
-      address: "",
       profilePicture: "",
       active: true,
     },
@@ -329,7 +326,6 @@ export default function ProfessionalsPage() {
       email: professional.email,
       phone: professional.phone,
       cpf: professional.cpf,
-      address: professional.address,
       profilePicture: professional.profilePicture || "",
       active: professional.active,
     });
@@ -542,13 +538,34 @@ export default function ProfessionalsPage() {
                         name="profilePicture"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>URL da Foto de Perfil</FormLabel>
+                            <FormLabel>Foto de Perfil</FormLabel>
                             <FormControl>
-                              <Input placeholder="https://exemplo.com/foto.jpg" {...field} value={field.value || ""} />
+                              <div className="flex items-center gap-4">
+                                {field.value && (
+                                  <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                                    <img 
+                                      src={field.value} 
+                                      alt="Profile" 
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </div>
+                                )}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="flex gap-2"
+                                  onClick={() => {
+                                    // Here you would typically open a file picker
+                                    // For now, we'll just use a placeholder URL
+                                    const imageUrl = prompt("Insira a URL da imagem (temporário até implementar upload):");
+                                    if (imageUrl) field.onChange(imageUrl);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                  {field.value ? "Alterar imagem" : "Adicionar imagem"}
+                                </Button>
+                              </div>
                             </FormControl>
-                            <FormDescription>
-                              Insira o URL de uma imagem para o perfil do profissional
-                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -670,9 +687,6 @@ export default function ProfessionalsPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Ações</DropdownMenuLabel>
                               <DropdownMenuItem onClick={() => handleViewProfessional(professional)}>
-                                Ver Detalhes
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditProfessional(professional)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
@@ -762,37 +776,6 @@ export default function ProfessionalsPage() {
                           <FormControl>
                             <Input {...field} />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={editForm.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Endereço</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={editForm.control}
-                      name="profilePicture"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>URL da Foto de Perfil</FormLabel>
-                          <FormControl>
-                            <Input {...field} value={field.value || ""} />
-                          </FormControl>
-                          <FormDescription>
-                            Insira o URL de uma imagem para o perfil do profissional
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

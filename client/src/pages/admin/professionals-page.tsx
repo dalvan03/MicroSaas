@@ -66,6 +66,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ScheduleSelector } from "@/components/schedule-selector";
 
 export default function ProfessionalsPage() {
   const { toast } = useToast();
@@ -959,130 +960,63 @@ export default function ProfessionalsPage() {
                       <TabsContent value="schedule" className="pt-4">
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-md font-medium">Horários de Trabalho</h3>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              scheduleForm.reset({
-                                dayOfWeek: 1,
-                                startTime: "09:00",
-                                endTime: "18:00",
-                              });
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Novo Horário
-                          </Button>
                         </div>
                         
-                        {/* Schedule form */}
-                        <Card className="mb-4">
-                          <CardHeader className="pb-3">
-                            <CardTitle className="text-sm">Adicionar Horário de Trabalho</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <Form {...scheduleForm}>
-                              <form onSubmit={scheduleForm.handleSubmit(onSubmitSchedule)} className="space-y-4">
-                                <FormField
-                                  control={scheduleForm.control}
-                                  name="dayOfWeek"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Dia da Semana</FormLabel>
-                                      <Select 
-                                        onValueChange={(value) => field.onChange(parseInt(value))}
-                                        defaultValue={field.value.toString()}
-                                      >
-                                        <FormControl>
-                                          <SelectTrigger>
-                                            <SelectValue placeholder="Selecione um dia da semana" />
-                                          </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                          {daysOfWeek.map((day) => (
-                                            <SelectItem key={day.value} value={day.value.toString()}>
-                                              {day.label}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={scheduleForm.control}
-                                    name="startTime"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Horário Inicial</FormLabel>
-                                        <FormControl>
-                                          <Input type="time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  
-                                  <FormField
-                                    control={scheduleForm.control}
-                                    name="endTime"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Horário Final</FormLabel>
-                                        <FormControl>
-                                          <Input type="time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                                
-                                <Button 
-                                  type="submit" 
-                                  className="w-full"
-                                  disabled={addWorkScheduleMutation.isPending}
-                                >
-                                  {addWorkScheduleMutation.isPending ? "Adicionando..." : "Adicionar Horário"}
-                                </Button>
-                              </form>
-                            </Form>
-                          </CardContent>
-                        </Card>
+                        {/* Import the ScheduleSelector component */}
+                        <ScheduleSelector 
+                          initialSchedules={workSchedules.map(schedule => ({
+                            dayOfWeek: schedule.dayOfWeek,
+                            startTime: schedule.startTime?.toString() || "08:00",
+                            endTime: schedule.endTime?.toString() || "18:00"
+                          }))}
+                          onSave={(schedules) => {
+                            // First, delete all existing schedules
+                            workSchedules.forEach(schedule => {
+                              deleteWorkScheduleMutation.mutate(schedule.id);
+                            });
+                            
+                            // Then add all new schedules
+                            schedules.forEach(schedule => {
+                              if (currentProfessional) {
+                                addWorkScheduleMutation.mutate({
+                                  professionalId: currentProfessional.id,
+                                  ...schedule,
+                                });
+                              }
+                            });
+                          }}
+                          isLoading={addWorkScheduleMutation.isPending || deleteWorkScheduleMutation.isPending}
+                        />
                         
-                        {/* Schedules list */}
-                        <div className="space-y-2">
-                          {workSchedules.length === 0 ? (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                              Nenhum horário de trabalho definido.
-                            </p>
-                          ) : (
-                            workSchedules.map((schedule) => (
-                              <div key={schedule.id} className="flex justify-between items-center rounded-md border p-3">
-                                <div className="flex items-center">
-                                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                                  <div>
-                                    <p className="text-sm font-medium">{getDayName(schedule.dayOfWeek)}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {schedule.startTime} - {schedule.endTime}
-                                    </p>
+                        {/* Display existing schedules for reference */}
+                        {workSchedules.length > 0 && (
+                          <div className="mt-6">
+                            <h4 className="text-sm font-medium mb-2">Horários Atuais</h4>
+                            <div className="space-y-2">
+                              {workSchedules.map((schedule) => (
+                                <div key={schedule.id} className="flex justify-between items-center rounded-md border p-3">
+                                  <div className="flex items-center">
+                                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                                    <div>
+                                      <p className="text-sm font-medium">{getDayName(schedule.dayOfWeek)}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {schedule.startTime} - {schedule.endTime}
+                                      </p>
+                                    </div>
                                   </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => deleteWorkScheduleMutation.mutate(schedule.id)}
+                                    disabled={deleteWorkScheduleMutation.isPending}
+                                  >
+                                    <Trash className="h-4 w-4 text-red-500" />
+                                  </Button>
                                 </div>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => deleteWorkScheduleMutation.mutate(schedule.id)}
-                                  disabled={deleteWorkScheduleMutation.isPending}
-                                >
-                                  <Trash className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            ))
-                          )}
-                        </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </TabsContent>
                     </Tabs>
                   </div>

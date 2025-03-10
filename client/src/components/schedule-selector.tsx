@@ -178,7 +178,7 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
                     {dayNames[day.dayOfWeek]}
                   </Label>
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground dark:text-white">
                   {day.enabled ? "Disponivel" : "Folga"}
                 </div>
               </div>
@@ -192,7 +192,7 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
                       onChange={(e) => handleTimeChange(day.dayOfWeek, "startTime", e.target.value)}
                       className="w-24"
                     />
-                    <span className="text-muted-foreground">—</span>
+                    <span className="text-muted-foreground dark:text-white">—</span>
                     <Input
                       type="time"
                       value={day.endTime}
@@ -223,7 +223,7 @@ export function ScheduleSelector({ onSave, initialSchedules = [], isLoading = fa
                         onChange={(e) => handleTimeChange(day.dayOfWeek, "lunchStartTime", e.target.value)}
                         className="w-24"
                       />
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground dark:text-white">—</span>
                       <Input
                         type="time"
                         value={day.lunchEndTime}

@@ -25,6 +25,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -60,6 +61,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { ScheduleSelector } from "@/components/schedule-selector";
 
 export default function SchedulePage() {
   const { toast } = useToast();
@@ -70,7 +72,7 @@ export default function SchedulePage() {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
-  
+
   // Invalidate appointments query when date changes
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["/api/appointments", format(selectedDate, "yyyy-MM-dd")] });
@@ -81,7 +83,7 @@ export default function SchedulePage() {
     serviceId: "",
   });
   const isMobile = useMobile();
-  
+
   // Time slots for the agenda view
   const timeSlots = [
     "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -199,66 +201,66 @@ export default function SchedulePage() {
       setSelectedServiceId("");
     }
   }, [openNewAppointment, selectedDate, form]);
-  
+
   // Calculate available time slots when professional or service changes
   useEffect(() => {
     if (!selectedProfessionalId || !selectedServiceId) {
       setAvailableTimeSlots([]);
       return;
     }
-    
+
     const professionalId = parseInt(selectedProfessionalId);
     const serviceId = parseInt(selectedServiceId);
     const service = services.find(s => s.id === serviceId);
-    
+
     if (!service) {
       setAvailableTimeSlots([]);
       return;
     }
-    
+
     // Get professional's work schedule for the selected date
     const dayOfWeek = selectedDate.getDay();
-    const professionalSchedules = workSchedules.filter(ws => 
+    const professionalSchedules = workSchedules.filter(ws =>
       ws.professionalId === professionalId && ws.dayOfWeek === dayOfWeek
     );
-    
+
     if (professionalSchedules.length === 0) {
       setAvailableTimeSlots([]);
       return;
     }
-    
+
     // For simplicity, use the first schedule found
     const schedule = professionalSchedules[0];
     const startTime = parse(schedule.startTime as string, "HH:mm:ss", new Date());
     const endTime = parse(schedule.endTime as string, "HH:mm:ss", new Date());
-    
+
     // Generate 30-minute slots
     const slots = [];
     let currentTime = startTime;
-    
+
     while (currentTime < endTime) {
       const timeString = format(currentTime, "HH:mm");
-      
+
       // Check if this slot is available (not booked already)
       const isSlotAvailable = !appointments.some((app: Appointment) => {
-        return app.professionalId === professionalId && 
-               app.startTime === timeString && 
-               format(new Date(app.date), "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
+        return app.professionalId === professionalId &&
+          app.startTime === timeString &&
+          format(new Date(app.date), "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
       });
-      
+
       // Check if there's enough time for the service
       const serviceEndTime = new Date(currentTime);
       serviceEndTime.setMinutes(serviceEndTime.getMinutes() + service.duration);
       const isEnoughTime = serviceEndTime <= endTime;
-      
+
       if (isSlotAvailable && isEnoughTime) {
         slots.push(timeString);
       }
-      
+
       // Increment by 30 minutes
       currentTime.setMinutes(currentTime.getMinutes() + 30);
     }
-    
+
     setAvailableTimeSlots(slots);
   }, [selectedProfessionalId, selectedServiceId, selectedDate, services, appointments, workSchedules]);
 
@@ -312,7 +314,6 @@ export default function SchedulePage() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-
   return (
     <Sidebar>
       <div className="flex flex-col space-y-6">
@@ -594,7 +595,7 @@ export default function SchedulePage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="startTime"
@@ -605,7 +606,7 @@ export default function SchedulePage() {
                               <FormControl>
                                 <Input type="time" {...field} />
                               </FormControl>
-                              
+
                               {availableTimeSlots.length > 0 && (
                                 <div className="mt-2">
                                   <FormLabel className="text-sm font-medium">Horários Disponíveis</FormLabel>
@@ -630,13 +631,13 @@ export default function SchedulePage() {
                                   </div>
                                 </div>
                               )}
-                              
+
                               {selectedProfessionalId && selectedServiceId && availableTimeSlots.length === 0 && (
                                 <p className="text-sm text-muted-foreground">
                                   Não há horários disponíveis para esta data e profissional
                                 </p>
                               )}
-                              
+
                               <FormMessage />
                             </div>
                           </FormItem>
@@ -682,7 +683,7 @@ export default function SchedulePage() {
                 className="rounded-md border w-full"
                 initialFocus
               />
-              
+
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Profissionais</h3>
                 <div className="space-y-2">
@@ -727,14 +728,14 @@ export default function SchedulePage() {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Time slots */}
                     {timeSlots.map((timeSlot) => {
                       // Find appointments for this time slot
-                      const slotAppointments = filteredAppointments.filter((app: Appointment) => 
+                      const slotAppointments = filteredAppointments.filter((app: Appointment) =>
                         app.startTime.substring(0, 5) === timeSlot
                       );
-                      
+
                       return (
                         <div key={timeSlot} className="grid grid-cols-[80px_1fr] hover:bg-gray-50">
                           <div className="py-0.5 text-[10px] text-gray-500 border-r">{timeSlot}</div>
@@ -747,7 +748,7 @@ export default function SchedulePage() {
                                     const service = services.find(s => s.id === appointment.serviceId);
                                     const user = users.find(u => u.id === appointment.userId);
                                     return (
-                                      <div 
+                                      <div
                                         key={appointment.id}
                                         className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
                                       >
@@ -763,7 +764,7 @@ export default function SchedulePage() {
                                 return (
                                   <div key={professional.id} className="relative h-5 p-0.25">
                                     {profAppointment && (
-                                      <div 
+                                      <div
                                         className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
                                       >
                                         <div className="font-medium">
@@ -785,6 +786,49 @@ export default function SchedulePage() {
                   </div>
                 </div>
               )}
+            </CardContent>
+          </Card>
+          <Card className="w-full">
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+                {filteredAppointments.map((appointment) => (
+                  <div key={appointment.id} className="p-4 border rounded-lg w-full">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-medium">
+                          {services.find((s) => s.id === appointment.serviceId)?.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {professionals.find((p) => p.id === appointment.professionalId)?.name}
+                        </p>
+                      </div>
+                      {getStatusBadge(appointment.status)}
+                    </div>
+                    <div className="text-sm">
+                      <p>{appointment.startTime} - {appointment.endTime}</p>
+                      {appointment.notes && (
+                        <p className="mt-2 text-muted-foreground">{appointment.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Horário de Funcionamento</CardTitle>
+              <CardDescription>
+                Configure os horários de funcionamento do estabelecimento.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ScheduleSelector
+                onSave={(schedules) => {
+                  // Handle save schedules
+                  console.log(schedules);
+                }}
+              />
             </CardContent>
           </Card>
         </div>

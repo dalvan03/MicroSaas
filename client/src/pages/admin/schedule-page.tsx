@@ -96,7 +96,6 @@ export default function SchedulePage() {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     staleTime: 0, // Override the global staleTime to ensure refetching
-    cacheTime: 0, // Don't cache the data to ensure fresh data on each date change
   });
 
   // Fetch professionals
@@ -145,7 +144,7 @@ export default function SchedulePage() {
   });
 
   // Filter appointments
-  const filteredAppointments = appointments.filter(appointment => {
+  const filteredAppointments = appointments.filter((appointment: Appointment) => {
     if (filters.professionalId && appointment.professionalId.toString() !== filters.professionalId) {
       return false;
     }
@@ -241,7 +240,7 @@ export default function SchedulePage() {
       const timeString = format(currentTime, "HH:mm");
       
       // Check if this slot is available (not booked already)
-      const isSlotAvailable = !appointments.some(app => {
+      const isSlotAvailable = !appointments.some((app: Appointment) => {
         return app.professionalId === professionalId && 
                app.startTime === timeString && 
                format(new Date(app.date), "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
@@ -304,11 +303,11 @@ export default function SchedulePage() {
       case "scheduled":
         return <Badge variant="outline">Agendado</Badge>;
       case "completed":
-        return <Badge variant="success">Concluído</Badge>;
+        return <Badge variant="secondary">Concluído</Badge>;
       case "cancelled":
         return <Badge variant="destructive">Cancelado</Badge>;
       case "no-show":
-        return <Badge variant="warning">Não Compareceu</Badge>;
+        return <Badge variant="outline">Não Compareceu</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -609,7 +608,7 @@ export default function SchedulePage() {
                               
                               {availableTimeSlots.length > 0 && (
                                 <div className="mt-2">
-                                  <Label className="text-sm font-medium">Horários Disponíveis</Label>
+                                  <FormLabel className="text-sm font-medium">Horários Disponíveis</FormLabel>
                                   <div className="mt-1 max-h-32 overflow-y-auto rounded-md border border-input p-2">
                                     <div className="grid grid-cols-3 gap-2">
                                       {availableTimeSlots.map((timeSlot) => (
@@ -732,7 +731,7 @@ export default function SchedulePage() {
                     {/* Time slots */}
                     {timeSlots.map((timeSlot) => {
                       // Find appointments for this time slot
-                      const slotAppointments = filteredAppointments.filter(app => 
+                      const slotAppointments = filteredAppointments.filter((app: Appointment) => 
                         app.startTime.substring(0, 5) === timeSlot
                       );
                       
@@ -743,8 +742,8 @@ export default function SchedulePage() {
                             {filters.professionalId ? (
                               <div className="relative h-5 p-0.25">
                                 {slotAppointments
-                                  .filter(app => app.professionalId.toString() === filters.professionalId)
-                                  .map(appointment => {
+                                  .filter((appointment: Appointment) => appointment.professionalId.toString() === filters.professionalId)
+                                  .map((appointment: Appointment) => {
                                     const service = services.find(s => s.id === appointment.serviceId);
                                     const user = users.find(u => u.id === appointment.userId);
                                     return (
@@ -760,7 +759,7 @@ export default function SchedulePage() {
                               </div>
                             ) : (
                               professionals.map(professional => {
-                                const profAppointment = slotAppointments.find(app => app.professionalId === professional.id);
+                                const profAppointment = slotAppointments.find((app: Appointment) => app.professionalId === professional.id);
                                 return (
                                   <div key={professional.id} className="relative h-5 p-0.25">
                                     {profAppointment && (

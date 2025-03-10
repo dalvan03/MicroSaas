@@ -235,8 +235,8 @@ export default function BookingPage() {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-start pt-32 sm:pt-40 md:pt-60 text-center px-4 sm:px-6">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">Transforme seu visual</h1>
-                  <p className="text-white text-base sm:text-lg md:text-xl opacity-90 mb-6 max-w-3xl">Nossos profissionais estão prontos para realçar sua beleza natural</p>
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">Sinta o Poder</h1>
+                  <p className="text-white text-base sm:text-lg md:text-xl opacity-90 mb-6 max-w-3xl">Nossos profissionais cortam como nenhum outro</p>
                 </div>
               </div>
             </CarouselItem>
@@ -245,9 +245,9 @@ export default function BookingPage() {
         </Carousel>
       </div>
 
-      <main className="flex-1 w-full px-4 sm:px-6 py-6 sm:py-8 -mt-40 relative z-20">
+      <main className="flex-1 w-full px-4 sm:px-6 py-6 sm:py-16 -mt-0 relative z-20">
         <div className="mb-12 sm:mb-16 text-center mt-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Agendamento de Serviços</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight"></h1>
         </div>
 
         {/* Em dispositivos móveis, use Tabs para navegação entre as etapas */}

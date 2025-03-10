@@ -43,6 +43,7 @@ export const professionalServices = sqliteTable("professional_services", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   professionalId: integer("professional_id").notNull().references(() => professionals.id),
   serviceId: integer("service_id").notNull().references(() => services.id),
+  commission: real("commission").default(0), // Commission amount in BRL
 });
 
 // Work Schedule for professionals

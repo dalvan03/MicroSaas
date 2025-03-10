@@ -393,9 +393,45 @@ export default function ProfessionalsPage() {
       addServiceToProfessionalMutation.mutate({
         professionalId: currentProfessional.id,
         serviceId,
+        commission: 0, // Default commission value
       });
     }
   };
+  
+  // Update commission for a professional service
+  const updateCommission = (serviceId: number, commission: number) => {
+    if (!currentProfessional) return;
+    
+    updateProfessionalServiceMutation.mutate({
+      professionalId: currentProfessional.id,
+      serviceId,
+      commission,
+    });
+  };
+  
+  // Add the mutation for updating commission
+  const updateProfessionalServiceMutation = useMutation({
+    mutationFn: async (data: { professionalId: number; serviceId: number; commission: number }) => {
+      const res = await apiRequest("PUT", `/api/professional-services`, data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Comissão atualizada",
+        description: "A comissão foi atualizada com sucesso.",
+      });
+      if (currentProfessional) {
+        refetchProfessionalServices();
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar comissão",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Filter professionals based on search query
   const filteredProfessionals = professionals.filter(professional => {
@@ -934,13 +970,34 @@ export default function ProfessionalsPage() {
                                   checked={isAssigned}
                                   onCheckedChange={() => toggleService(service.id)}
                                 />
-                                <div className="flex flex-col">
-                                  <label
-                                    htmlFor={`service-${service.id}`}
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                                  >
-                                    {service.name}
-                                  </label>
+                                <div className="flex flex-col w-full">
+                                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full">
+                                    <label
+                                      htmlFor={`service-${service.id}`}
+                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer mb-2 sm:mb-0"
+                                    >
+                                      {service.name}
+                                    </label>
+                                    <div className="flex items-center mt-2 sm:mt-0">
+                                      <span className="text-xs text-muted-foreground mr-2">Comissão:</span>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        className="h-7 w-24 text-xs"
+                                        placeholder="R$ 0,00"
+                                        value={professionalServices.find(s => s.id === service.id)?.commission || 0}
+                                        disabled={false}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => {
+                                          if (!isAssigned) {
+                                            const value = parseFloat(e.target.value) || 0;
+                                            updateCommission(service.id, value);
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
                                   {service.description && (
                                     <p className="text-sm text-muted-foreground mt-1">
                                       {service.description}

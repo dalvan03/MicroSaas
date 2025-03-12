@@ -15,6 +15,8 @@ import FinancePage from "@/pages/admin/finance-page";
 import ReportsPage from "@/pages/admin/reports-page";
 import ServicesPage from "@/pages/admin/services-page";
 import ProfessionalsPage from "@/pages/admin/professionals-page";
+import ProfessionalPerformancePage from "@/pages/admin/professional-performance-page";
+import TransactionsPage from "@/pages/admin/transactions-page";
 import LandingPage from "@/pages/landing-page";
 
 function Router() {
@@ -34,9 +36,11 @@ function Router() {
       <ProtectedRoute path="/admin/schedule" component={SchedulePage} />
       <ProtectedRoute path="/admin/clients" component={ClientsPage} />
       <ProtectedRoute path="/admin/finance" component={FinancePage} />
+      <ProtectedRoute path="/admin/transactions" component={TransactionsPage} />
       <ProtectedRoute path="/admin/reports" component={ReportsPage} />
       <ProtectedRoute path="/admin/services" component={ServicesPage} />
       <ProtectedRoute path="/admin/professionals" component={ProfessionalsPage} />
+      <ProtectedRoute path="/admin/professional-performance" component={ProfessionalPerformancePage} />
 
       {/* Fallback to 404 */}
       <Route component={NotFound} />

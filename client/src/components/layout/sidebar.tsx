@@ -9,7 +9,9 @@ import {
   Home,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Award,
+  ArrowLeftRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, ReactNode } from "react";
@@ -60,6 +62,16 @@ export function Sidebar({ className, children }: SidebarProps) {
       icon: <DollarSign className="mr-2 h-5 w-5" />,
       label: "Financeiro",
       href: "/admin/finance",
+    },
+    {
+      icon: <ArrowLeftRight className="mr-2 h-5 w-5" />,
+      label: "Movimentações",
+      href: "/admin/transactions",
+    },
+    {
+      icon: <Award className="mr-2 h-5 w-5" />,
+      label: "Desempenho Profissionais",
+      href: "/admin/professional-performance",
     },
     {
       icon: <BarChart className="mr-2 h-5 w-5" />,

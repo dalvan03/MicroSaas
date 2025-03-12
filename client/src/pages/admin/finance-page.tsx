@@ -33,8 +33,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter } from "lucide-react";
-import { format, subDays, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange } from "lucide-react";
+import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -49,11 +49,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function FinancePage() {
   const { toast } = useToast();
-  const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "year">("month");
+  const [periodType, setPeriodType] = useState<"today" | "week" | "month" | "year" | "custom">("month");
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
   const [newTransactionOpen, setNewTransactionOpen] = useState(false);
   const isMobile = useMobile();
   
@@ -61,26 +66,30 @@ export default function FinancePage() {
   const today = new Date();
   let startDate: Date;
   
-  switch (dateRange) {
-    case "today":
-      startDate = today;
-      break;
-    case "week":
-      startDate = subDays(today, 7);
-      break;
-    case "month":
-      startDate = startOfMonth(today);
-      break;
-    case "year":
-      startDate = subMonths(today, 12);
-      break;
-    default:
-      startDate = startOfMonth(today);
+  if (periodType === "custom" && customDateRange?.from) {
+    startDate = customDateRange.from;
+  } else {
+    switch (periodType) {
+      case "today":
+        startDate = today;
+        break;
+      case "week":
+        startDate = subDays(today, 7);
+        break;
+      case "month":
+        startDate = startOfMonth(today);
+        break;
+      case "year":
+        startDate = subMonths(today, 12);
+        break;
+      default:
+        startDate = startOfMonth(today);
+    }
   }
   
   // Fetch transactions
   const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions", dateRange],
+    queryKey: ["/api/transactions", periodType, customDateRange],
   });
   
   // Create transaction mutation
@@ -136,12 +145,27 @@ export default function FinancePage() {
     });
   };
   
+  // Filter transactions by date range
+  const filterByDateRange = (items: Transaction[]): Transaction[] => {
+    return items.filter(item => {
+      const itemDate = new Date(item.date);
+      if (periodType === "custom" && customDateRange?.from) {
+        const endDate = customDateRange.to || today;
+        return itemDate >= customDateRange.from && itemDate <= endDate;
+      } else {
+        return itemDate >= startDate && itemDate <= today;
+      }
+    });
+  };
+
+  const filteredTransactions = filterByDateRange(transactions);
+  
   // Calculate summary
-  const income = transactions
+  const income = filteredTransactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const expenses = transactions
+  const expenses = filteredTransactions
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
   
@@ -150,7 +174,7 @@ export default function FinancePage() {
   // Group transactions by date
   const groupedTransactions: Record<string, Transaction[]> = {};
   
-  transactions.forEach(transaction => {
+  filteredTransactions.forEach(transaction => {
     const date = transaction.date;
     if (!groupedTransactions[date]) {
       groupedTransactions[date] = [];
@@ -172,17 +196,63 @@ export default function FinancePage() {
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Tabs
               defaultValue="month"
-              value={dateRange}
-              onValueChange={(value) => setDateRange(value as "today" | "week" | "month" | "year")}
+              value={periodType}
+              onValueChange={(value) => {
+                setPeriodType(value as "today" | "week" | "month" | "year" | "custom");
+                if (value === "custom") {
+                  // If switching to custom, ensure we have a default date range
+                  if (!customDateRange?.from) {
+                    setCustomDateRange({
+                      from: subMonths(new Date(), 1),
+                      to: new Date()
+                    });
+                  }
+                }
+              }}
               className="w-full sm:w-auto"
             >
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="today">Hoje</TabsTrigger>
                 <TabsTrigger value="week">Semana</TabsTrigger>
                 <TabsTrigger value="month">Mês</TabsTrigger>
                 <TabsTrigger value="year">Ano</TabsTrigger>
+                <TabsTrigger value="custom">Personalizado</TabsTrigger>
               </TabsList>
             </Tabs>
+            
+            {periodType === "custom" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full sm:w-auto justify-start text-left font-normal"
+                  >
+                    <CalendarRange className="mr-2 h-4 w-4" />
+                    {customDateRange?.from ? (
+                      customDateRange.to ? (
+                        <>
+                          {format(customDateRange.from, "dd/MM/yyyy")} - {format(customDateRange.to, "dd/MM/yyyy")}
+                        </>
+                      ) : (
+                        format(customDateRange.from, "dd/MM/yyyy")
+                      )
+                    ) : (
+                      <span>Selecione um período</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={customDateRange?.from}
+                    selected={customDateRange}
+                    onSelect={setCustomDateRange}
+                    numberOfMonths={isMobile ? 1 : 2}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
             
             <Dialog open={newTransactionOpen} onOpenChange={setNewTransactionOpen}>
               <DialogTrigger asChild>
@@ -456,9 +526,9 @@ export default function FinancePage() {
         {/* Outstanding Debts */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Clientes em Débito</CardTitle>
+            <CardTitle>Agendamentos com pagamentos pendentes</CardTitle>
             <CardDescription>
-              Agendamentos com pagamentos pendentes
+              Conclua os pagamentos pendentes
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -467,6 +537,7 @@ export default function FinancePage() {
                 <TableRow>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Serviço</TableHead>
+                  <TableHead>Profissional</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -477,25 +548,53 @@ export default function FinancePage() {
                 <TableRow>
                   <TableCell>Ana Silva</TableCell>
                   <TableCell>Coloração</TableCell>
+                  <TableCell>Juliana Mendes</TableCell>
                   <TableCell>{format(subDays(new Date(), 3), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 120,00</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      Registrar Pagamento
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <Button variant="outline" size="sm">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Registrar Pagamento
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                        <X className="h-4 w-4 mr-1" />
+                        Não Compareceu
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                        Remarcar
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>Carlos Mendes</TableCell>
                   <TableCell>Corte e Barba</TableCell>
+                  <TableCell>Roberto Alves</TableCell>
                   <TableCell>{format(subDays(new Date(), 5), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 70,00</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm">
-                      <DollarSign className="h-4 w-4 mr-1" />
-                      Registrar Pagamento
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <Button variant="outline" size="sm">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        Registrar Pagamento
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                        <X className="h-4 w-4 mr-1" />
+                        Não Compareceu
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                        Remarcar
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               </TableBody>

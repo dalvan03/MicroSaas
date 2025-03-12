@@ -456,9 +456,9 @@ export default function FinancePage() {
         {/* Outstanding Debts */}
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Clientes em Débito</CardTitle>
+            <CardTitle>Agendamentos com pagamentos pendentes</CardTitle>
             <CardDescription>
-              Agendamentos com pagamentos pendentes
+              Conclua os pagamentos pendentes
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -467,6 +467,7 @@ export default function FinancePage() {
                 <TableRow>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Serviço</TableHead>
+                  <TableHead>Profissional</TableHead>
                   <TableHead>Data</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -477,6 +478,7 @@ export default function FinancePage() {
                 <TableRow>
                   <TableCell>Ana Silva</TableCell>
                   <TableCell>Coloração</TableCell>
+                  <TableCell>Juliana Mendes</TableCell>
                   <TableCell>{format(subDays(new Date(), 3), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 120,00</TableCell>
                   <TableCell className="text-right">
@@ -502,6 +504,7 @@ export default function FinancePage() {
                 <TableRow>
                   <TableCell>Carlos Mendes</TableCell>
                   <TableCell>Corte e Barba</TableCell>
+                  <TableCell>Roberto Alves</TableCell>
                   <TableCell>{format(subDays(new Date(), 5), "dd/MM/yyyy")}</TableCell>
                   <TableCell className="text-right">R$ 70,00</TableCell>
                   <TableCell className="text-right">

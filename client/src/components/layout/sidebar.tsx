@@ -63,6 +63,11 @@ export function Sidebar({ className, children }: SidebarProps) {
       href: "/admin/finance",
     },
     {
+      icon: <DollarSign className="mr-2 h-5 w-5" />,
+      label: "Movimentações",
+      href: "/admin/transactions",
+    },
+    {
       icon: <Award className="mr-2 h-5 w-5" />,
       label: "Desempenho Profissionais",
       href: "/admin/professional-performance",

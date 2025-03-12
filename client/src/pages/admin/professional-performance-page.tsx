@@ -26,11 +26,18 @@ import { Badge } from "@/components/ui/badge";
 import { format, subDays, subMonths, startOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { DollarSign, Calendar as CalendarIcon, TrendingUp, Scissors, Award, ArrowUpRight } from "lucide-react";
+import { DollarSign, Calendar as CalendarIcon, TrendingUp, Scissors, Award, ArrowUpRight, CalendarRange } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 
 export default function ProfessionalPerformancePage() {
-  const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "year">("month");
+  const [periodType, setPeriodType] = useState<"today" | "week" | "month" | "year" | "custom">("month");
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const isMobile = useMobile();
@@ -39,21 +46,25 @@ export default function ProfessionalPerformancePage() {
   const today = new Date();
   let startDate: Date;
   
-  switch (dateRange) {
-    case "today":
-      startDate = today;
-      break;
-    case "week":
-      startDate = subDays(today, 7);
-      break;
-    case "month":
-      startDate = startOfMonth(today);
-      break;
-    case "year":
-      startDate = subMonths(today, 12);
-      break;
-    default:
-      startDate = startOfMonth(today);
+  if (periodType === "custom" && customDateRange?.from) {
+    startDate = customDateRange.from;
+  } else {
+    switch (periodType) {
+      case "today":
+        startDate = today;
+        break;
+      case "week":
+        startDate = subDays(today, 7);
+        break;
+      case "month":
+        startDate = startOfMonth(today);
+        break;
+      case "year":
+        startDate = subMonths(today, 12);
+        break;
+      default:
+        startDate = startOfMonth(today);
+    }
   }
   
   // Fetch professionals
@@ -73,14 +84,19 @@ export default function ProfessionalPerformancePage() {
   
   // Fetch transactions
   const { data: transactions = [] } = useQuery<Transaction[]>({
-    queryKey: ["/api/transactions", dateRange],
+    queryKey: ["/api/transactions", periodType, customDateRange],
   });
   
   // Filter data by date range
   const filterByDateRange = <T extends { date: string | Date }>(items: T[]): T[] => {
     return items.filter(item => {
       const itemDate = new Date(item.date);
-      return itemDate >= startDate && itemDate <= today;
+      if (periodType === "custom" && customDateRange?.from) {
+        const endDate = customDateRange.to || today;
+        return itemDate >= customDateRange.from && itemDate <= endDate;
+      } else {
+        return itemDate >= startDate && itemDate <= today;
+      }
     });
   };
   
@@ -128,21 +144,27 @@ export default function ProfessionalPerformancePage() {
     // Previous period for comparison
     let previousStartDate: Date;
     
-    switch (dateRange) {
-      case "today":
-        previousStartDate = subDays(startDate, 1);
-        break;
-      case "week":
-        previousStartDate = subDays(startDate, 7);
-        break;
-      case "month":
-        previousStartDate = subMonths(startDate, 1);
-        break;
-      case "year":
-        previousStartDate = subMonths(startDate, 12);
-        break;
-      default:
-        previousStartDate = subMonths(startDate, 1);
+    if (periodType === "custom" && customDateRange?.from && customDateRange?.to) {
+      // For custom date range, calculate an equivalent previous period
+      const rangeDuration = customDateRange.to.getTime() - customDateRange.from.getTime();
+      previousStartDate = new Date(customDateRange.from.getTime() - rangeDuration);
+    } else {
+      switch (periodType) {
+        case "today":
+          previousStartDate = subDays(startDate, 1);
+          break;
+        case "week":
+          previousStartDate = subDays(startDate, 7);
+          break;
+        case "month":
+          previousStartDate = subMonths(startDate, 1);
+          break;
+        case "year":
+          previousStartDate = subMonths(startDate, 12);
+          break;
+        default:
+          previousStartDate = subMonths(startDate, 1);
+      }
     }
     
     // Filter appointments for previous period
@@ -179,7 +201,8 @@ export default function ProfessionalPerformancePage() {
       : 100;
     
     // Generate daily data for charts
-    const daysInRange = eachDayOfInterval({ start: startDate, end: today });
+    const endDate = periodType === "custom" && customDateRange?.to ? customDateRange.to : today;
+    const daysInRange = eachDayOfInterval({ start: startDate, end: endDate });
     const dailyData = daysInRange.map(day => {
       const dayStr = format(day, "yyyy-MM-dd");
       const dayAppointments = filteredAppointments.filter(
@@ -244,19 +267,67 @@ export default function ProfessionalPerformancePage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Desempenho Profissionais</h1>
           
-          <Tabs
-            defaultValue="month"
-            value={dateRange}
-            onValueChange={(value) => setDateRange(value as "today" | "week" | "month" | "year")}
-            className="w-full sm:w-auto"
-          >
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="today">Hoje</TabsTrigger>
-              <TabsTrigger value="week">Semana</TabsTrigger>
-              <TabsTrigger value="month">Mês</TabsTrigger>
-              <TabsTrigger value="year">Ano</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Tabs
+              defaultValue="month"
+              value={periodType}
+              onValueChange={(value) => {
+                setPeriodType(value as "today" | "week" | "month" | "year" | "custom");
+                if (value === "custom") {
+                  // If switching to custom, ensure we have a default date range
+                  if (!customDateRange?.from) {
+                    setCustomDateRange({
+                      from: subMonths(new Date(), 1),
+                      to: new Date()
+                    });
+                  }
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              <TabsList className="grid w-full grid-cols-5">
+                <TabsTrigger value="today">Hoje</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+                <TabsTrigger value="month">Mês</TabsTrigger>
+                <TabsTrigger value="year">Ano</TabsTrigger>
+                <TabsTrigger value="custom">Personalizado</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {periodType === "custom" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full sm:w-auto justify-start text-left font-normal"
+                  >
+                    <CalendarRange className="mr-2 h-4 w-4" />
+                    {customDateRange?.from ? (
+                      customDateRange.to ? (
+                        <>
+                          {format(customDateRange.from, "dd/MM/yyyy")} - {format(customDateRange.to, "dd/MM/yyyy")}
+                        </>
+                      ) : (
+                        format(customDateRange.from, "dd/MM/yyyy")
+                      )
+                    ) : (
+                      <span>Selecione um período</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={customDateRange?.from}
+                    selected={customDateRange}
+                    onSelect={setCustomDateRange}
+                    numberOfMonths={isMobile ? 1 : 2}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
         </div>
         
         {/* Professional Performance Cards */}
@@ -334,7 +405,11 @@ export default function ProfessionalPerformancePage() {
                   Desempenho de {selectedProfessional.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Análise detalhada de desempenho no período selecionado
+                  {periodType === "custom" && customDateRange?.from && customDateRange?.to ? (
+                    <>Análise de {format(customDateRange.from, "dd/MM/yyyy")} até {format(customDateRange.to, "dd/MM/yyyy")}</>
+                  ) : (
+                    <>Análise detalhada de desempenho no período selecionado</>
+                  )}
                 </DialogDescription>
               </DialogHeader>
               

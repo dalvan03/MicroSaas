@@ -487,7 +487,6 @@ export default function FinancePage() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button type="button" variant="outline">Cancelar</Button>
                         <Button type="button">Salvar Cliente</Button>
                       </DialogFooter>
                     </DialogContent>

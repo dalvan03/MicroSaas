@@ -446,61 +446,21 @@ export default function ClientsPage() {
                     </div>
 
                     <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Endereço</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Endereço completo" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="instagram"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Instagram</FormLabel>
-                          <FormControl>
-                            <Input placeholder="@usuario" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CPF</FormLabel>
+                            <FormControl>
+                              <Input placeholder="000.000.000-00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
                       )}
                     />
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input placeholder="username" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
 
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Senha</FormLabel>
-                            <FormControl>
-                              <Input type="password" placeholder="******" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                     </div>
 
                     <DialogFooter>
@@ -780,13 +740,13 @@ export default function ClientsPage() {
                             <TableCell>Profissional</TableCell>
                             <TableCell>
                               <Badge
-                                className={appointment.status === "completed" ? "bg-green-600" : 
-                                          appointment.status === "cancelled" ? "bg-red-600" : 
-                                          "bg-yellow-600"}
+                                className={appointment.status === "completed" ? "bg-green-600" :
+                                  appointment.status === "cancelled" ? "bg-red-600" :
+                                    "bg-yellow-600"}
                               >
                                 {appointment.status === "completed" ? "Concluído" :
-                                 appointment.status === "cancelled" ? "Cancelado" :
-                                 appointment.status === "no-show" ? "Não Compareceu" : "Agendado"}
+                                  appointment.status === "cancelled" ? "Cancelado" :
+                                    appointment.status === "no-show" ? "Não Compareceu" : "Agendado"}
                               </Badge>
                             </TableCell>
                           </TableRow>

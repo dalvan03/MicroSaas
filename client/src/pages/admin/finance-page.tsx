@@ -11,6 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import {
   Card,
@@ -33,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange } from "lucide-react";
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange, Search, Plus } from "lucide-react";
 import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -61,11 +62,11 @@ export default function FinancePage() {
   });
   const [newTransactionOpen, setNewTransactionOpen] = useState(false);
   const isMobile = useMobile();
-  
+
   // Calculate date ranges
   const today = new Date();
   let startDate: Date;
-  
+
   if (periodType === "custom" && customDateRange?.from) {
     startDate = customDateRange.from;
   } else {
@@ -86,12 +87,12 @@ export default function FinancePage() {
         startDate = startOfMonth(today);
     }
   }
-  
+
   // Fetch transactions
   const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", periodType, customDateRange],
   });
-  
+
   // Create transaction mutation
   const createTransactionMutation = useMutation({
     mutationFn: async (data: Omit<InsertTransaction, "createdAt">) => {
@@ -114,7 +115,7 @@ export default function FinancePage() {
       });
     },
   });
-  
+
   // Form schema for new transaction
   const formSchema = z.object({
     type: z.enum(["income", "expense"]),
@@ -123,7 +124,7 @@ export default function FinancePage() {
     date: z.date({ required_error: "Data é obrigatória" }),
     appointmentId: z.string().optional(),
   });
-  
+
   // Form for new transaction
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -135,7 +136,7 @@ export default function FinancePage() {
       appointmentId: undefined,
     },
   });
-  
+
   // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createTransactionMutation.mutate({
@@ -144,7 +145,7 @@ export default function FinancePage() {
       appointmentId: values.appointmentId ? parseInt(values.appointmentId) : undefined,
     });
   };
-  
+
   // Filter transactions by date range
   const filterByDateRange = (items: Transaction[]): Transaction[] => {
     return items.filter(item => {
@@ -159,21 +160,21 @@ export default function FinancePage() {
   };
 
   const filteredTransactions = filterByDateRange(transactions);
-  
+
   // Calculate summary
   const income = filteredTransactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
-  
+
   const expenses = filteredTransactions
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
-  
+
   const balance = income - expenses;
-  
+
   // Group transactions by date
   const groupedTransactions: Record<string, Transaction[]> = {};
-  
+
   filteredTransactions.forEach(transaction => {
     const date = transaction.date;
     if (!groupedTransactions[date]) {
@@ -181,18 +182,18 @@ export default function FinancePage() {
     }
     groupedTransactions[date].push(transaction);
   });
-  
+
   // Sort dates in descending order
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => {
     return new Date(b).getTime() - new Date(a).getTime();
   });
-  
+
   return (
     <Sidebar>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Financeiro</h1>
-          
+          <h1 className="text-2xl font-bold tracking-tight">Frente De Caixa</h1>
+
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Tabs
               defaultValue="month"
@@ -213,13 +214,9 @@ export default function FinancePage() {
             >
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="today">Hoje</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
-                <TabsTrigger value="month">Mês</TabsTrigger>
-                <TabsTrigger value="year">Ano</TabsTrigger>
-                <TabsTrigger value="custom">Personalizado</TabsTrigger>
               </TabsList>
             </Tabs>
-            
+
             {periodType === "custom" && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -253,13 +250,9 @@ export default function FinancePage() {
                 </PopoverContent>
               </Popover>
             )}
-            
+
             <Dialog open={newTransactionOpen} onOpenChange={setNewTransactionOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Transação
-                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -268,7 +261,7 @@ export default function FinancePage() {
                     Registre uma nova transação financeira.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -303,7 +296,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="amount"
@@ -320,7 +313,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="description"
@@ -334,7 +327,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="date"
@@ -373,7 +366,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <DialogFooter>
                       <Button type="submit" disabled={createTransactionMutation.isPending}>
                         {createTransactionMutation.isPending ? "Salvando..." : "Salvar"}
@@ -385,7 +378,7 @@ export default function FinancePage() {
             </Dialog>
           </div>
         </div>
-        
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
@@ -402,7 +395,7 @@ export default function FinancePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -417,7 +410,7 @@ export default function FinancePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -438,91 +431,201 @@ export default function FinancePage() {
             </CardContent>
           </Card>
         </div>
-        
-        {/* Transactions Table */}
+
+        {/* Nova venda */}
         <Card>
           <CardHeader>
-            <CardTitle>Transações</CardTitle>
+            <CardTitle>Nova venda</CardTitle>
             <CardDescription>
-              Histórico de transações financeiras.
+              Registre uma nova venda de serviço ou produto.
             </CardDescription>
           </CardHeader>
           <CardContent>
-              {isTransactionsLoading ? (
-                <div className="text-center py-4">Carregando transações...</div>
-              ) : sortedDates.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  Nenhuma transação encontrada para este período.
+            <div className="space-y-4">
+              {/* Cliente */}
+              <div className="space-y-2">
+                <Label htmlFor="client-search">Cliente</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="client-search" 
+                    placeholder="Buscar cliente por nome..." 
+                    className="pl-8"
+                  />
                 </div>
-              ) : (
-                <div>
-                  {sortedDates.map((date) => (
-                    <div key={date} className="mb-6">
-                      <h3 className="text-sm font-medium mb-2">
-                        {format(new Date(date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </h3>
-                      
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead className="text-right">Valor</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {groupedTransactions[date].map((transaction) => (
-                            <TableRow key={transaction.id}>
-                              <TableCell>
-                                {transaction.type === "income" ? (
-                                  <div className="flex items-center text-green-600">
-                                    <PlusCircle className="h-4 w-4 mr-1" />
-                                    <span>Receita</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center text-red-600">
-                                    <MinusCircle className="h-4 w-4 mr-1" />
-                                    <span>Despesa</span>
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>{transaction.description}</TableCell>
-                              <TableCell className={cn(
-                                "text-right font-medium",
-                                transaction.type === "income" ? "text-green-600" : "text-red-600"
-                              )}>
-                                {transaction.type === "income" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      
-                      <div className="flex justify-between items-center mt-2 px-3">
-                        <div className="text-sm text-muted-foreground">
-                          Total do dia:
-                        </div>
-                        <div className="text-sm font-medium">
-                          {(() => {
-                            const dailyTotal = groupedTransactions[date].reduce((sum, t) => {
-                              return sum + (t.type === "income" ? t.amount : -t.amount);
-                            }, 0);
-                            
-                            return (
-                              <span className={dailyTotal >= 0 ? "text-green-600" : "text-red-600"}>
-                                {dailyTotal >= 0 ? "+" : ""}R$ {dailyTotal.toFixed(2)}
-                              </span>
-                            );
-                          })()}
+                <div className="text-sm text-muted-foreground">
+                  Cliente não encontrado? 
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="link" className="p-0 h-auto font-normal" type="button">
+                        Cadastrar novo cliente
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Novo Cliente</DialogTitle>
+                        <DialogDescription>
+                          Preencha os dados para cadastrar um novo cliente.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-2">
+                        <div className="grid gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="name">Nome</Label>
+                            <Input id="name" placeholder="Nome completo" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="email">Email</Label>
+                              <Input id="email" placeholder="email@exemplo.com" type="email" />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="phone">Telefone</Label>
+                              <Input id="phone" placeholder="(00) 00000-0000" />
+                            </div>
+                            <div className="grid gap-2">
+                            <Label htmlFor="name">CPF</Label>
+                            <Input id="name" placeholder="000.000.000-00" />
+                          </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                      <DialogFooter>
+                        <Button type="button">Salvar Cliente</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              )}
+              </div>
+
+              {/* Profissional */}
+              <div className="space-y-2">
+                <Label htmlFor="professional">Profissional</Label>
+                <select 
+                  id="professional" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Selecione um profissional</option>
+                  <option value="1">Carlos Ferreira</option>
+                  <option value="2">Juliana Mendes</option>
+                  <option value="3">Roberto Alves</option>
+                </select>
+              </div>
+
+              {/* Serviço */}
+              <div className="space-y-2">
+                <Label htmlFor="service">Serviço</Label>
+                <select 
+                  id="service" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Selecione um serviço</option>
+                  <option value="1">Corte de Cabelo - R$ 50,00</option>
+                  <option value="2">Coloração - R$ 120,00</option>
+                  <option value="3">Manicure - R$ 35,00</option>
+                </select>
+              </div>
+
+              {/* Produtos e Preços */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Produtos e Serviços</Label>
+                  <Button variant="outline" size="sm" type="button">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar Item
+                  </Button>
+                </div>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead>Quantidade</TableHead>
+                        <TableHead>Preço Unit.</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Corte de Cabelo</TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="1" 
+                            min="1" 
+                            className="w-16 h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="50.00" 
+                            min="0" 
+                            step="0.01" 
+                            className="w-24 h-8"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">R$ 50,00</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Shampoo Profissional</TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="1" 
+                            min="1" 
+                            className="w-16 h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="45.00" 
+                            min="0" 
+                            step="0.01" 
+                            className="w-24 h-8"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">R$ 45,00</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-right font-medium">Valor Total:</TableCell>
+                        <TableCell className="text-right font-bold text-lg">R$ 95,00</TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" type="button">Cancelar</Button>
+                <Button variant="outline" type="button">Salvar</Button>
+                <Button type="button" className="bg-green-600 hover:bg-green-700">
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Confirmar Pagamento e Salvar
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
-        
+
         {/* Outstanding Debts */}
         <Card className="mt-6">
           <CardHeader>
@@ -602,6 +705,6 @@ export default function FinancePage() {
           </CardContent>
         </Card>
       </div>
-     </Sidebar>
+    </Sidebar>
   );
 }

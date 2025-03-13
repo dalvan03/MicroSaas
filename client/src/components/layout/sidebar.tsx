@@ -44,6 +44,11 @@ export function Sidebar({ className, children }: SidebarProps) {
 
   const sidebarItems = [
     {
+      icon: <DollarSign className="mr-2 h-5 w-5" />,
+      label: "Vendas",
+      href: "/admin/finance",
+    },
+    {
       icon: <Home className="mr-2 h-5 w-5" />,
       label: "Dashboard",
       href: "/admin",
@@ -57,11 +62,6 @@ export function Sidebar({ className, children }: SidebarProps) {
       icon: <Users className="mr-2 h-5 w-5" />,
       label: "Clientes",
       href: "/admin/clients",
-    },
-    {
-      icon: <DollarSign className="mr-2 h-5 w-5" />,
-      label: "Financeiro",
-      href: "/admin/finance",
     },
     {
       icon: <ArrowLeftRight className="mr-2 h-5 w-5" />,

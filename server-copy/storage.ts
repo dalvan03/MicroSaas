@@ -69,7 +69,7 @@ export class SupabaseStorage implements IStorage {
   sessionStore = null;
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -207,7 +207,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async deleteService(id: number): Promise<boolean> {
+  async deleteService(id: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('services')
       .delete()
@@ -217,7 +217,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Professional-Service operations
-  async getProfessionalServices(professionalId: number): Promise<Service[]> {
+  async getProfessionalServices(professionalId: string): Promise<Service[]> {
     const { data: psData, error: psError } = await supabase
       .from('professionalServices')
       .select('*')

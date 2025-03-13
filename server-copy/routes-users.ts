@@ -2,11 +2,11 @@ import { storage } from "./storage";
 import type { Express, Request, Response, NextFunction } from "express";
 
 export function setupUserRoutes(app: Express): void {
-  // Users API
+  // Endpoint para listar todos os usuários (apenas admin)
   app.get("/api/users", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Verifica se o usuário está autenticado e se é admin
-      if (req.session && req.session.user && req.session.user.role === "admin") {
+      const sessionUser = (req.session as any).user;
+      if (sessionUser && sessionUser.role === "admin") {
         const users = await storage.getAllUsers();
         res.json(users);
       } else {
@@ -17,19 +17,20 @@ export function setupUserRoutes(app: Express): void {
     }
   });
 
+  // Endpoint para obter um usuário específico
   app.get("/api/users/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Supondo que os IDs agora sejam strings (UUID), retire o parseInt
+      // Agora o ID é tratado como string (UUID)
       const id = req.params.id;
-      // Verifica se há sessão e permite acesso somente se o usuário for admin ou se for o próprio usuário
-      if (!req.session || !req.session.user) {
+      const sessionUser = (req.session as any).user;
+      if (!sessionUser) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      const requestingUser = req.session.user;
-      if (requestingUser.role !== "admin" && requestingUser.id !== id) {
+      // Permite acesso se o usuário logado for admin ou se for o próprio usuário
+      if (sessionUser.role !== "admin" && sessionUser.id !== id) {
         return res.status(403).json({ message: "Forbidden" });
       }
-
+      
       const user = await storage.getUser(id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });

@@ -61,11 +61,11 @@ export default function FinancePage() {
   });
   const [newTransactionOpen, setNewTransactionOpen] = useState(false);
   const isMobile = useMobile();
-  
+
   // Calculate date ranges
   const today = new Date();
   let startDate: Date;
-  
+
   if (periodType === "custom" && customDateRange?.from) {
     startDate = customDateRange.from;
   } else {
@@ -86,12 +86,12 @@ export default function FinancePage() {
         startDate = startOfMonth(today);
     }
   }
-  
+
   // Fetch transactions
   const { data: transactions = [], isLoading: isTransactionsLoading } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", periodType, customDateRange],
   });
-  
+
   // Create transaction mutation
   const createTransactionMutation = useMutation({
     mutationFn: async (data: Omit<InsertTransaction, "createdAt">) => {
@@ -114,7 +114,7 @@ export default function FinancePage() {
       });
     },
   });
-  
+
   // Form schema for new transaction
   const formSchema = z.object({
     type: z.enum(["income", "expense"]),
@@ -123,7 +123,7 @@ export default function FinancePage() {
     date: z.date({ required_error: "Data é obrigatória" }),
     appointmentId: z.string().optional(),
   });
-  
+
   // Form for new transaction
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -135,7 +135,7 @@ export default function FinancePage() {
       appointmentId: undefined,
     },
   });
-  
+
   // Handle form submission
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createTransactionMutation.mutate({
@@ -144,7 +144,7 @@ export default function FinancePage() {
       appointmentId: values.appointmentId ? parseInt(values.appointmentId) : undefined,
     });
   };
-  
+
   // Filter transactions by date range
   const filterByDateRange = (items: Transaction[]): Transaction[] => {
     return items.filter(item => {
@@ -159,21 +159,21 @@ export default function FinancePage() {
   };
 
   const filteredTransactions = filterByDateRange(transactions);
-  
+
   // Calculate summary
   const income = filteredTransactions
     .filter(t => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
-  
+
   const expenses = filteredTransactions
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
-  
+
   const balance = income - expenses;
-  
+
   // Group transactions by date
   const groupedTransactions: Record<string, Transaction[]> = {};
-  
+
   filteredTransactions.forEach(transaction => {
     const date = transaction.date;
     if (!groupedTransactions[date]) {
@@ -181,18 +181,18 @@ export default function FinancePage() {
     }
     groupedTransactions[date].push(transaction);
   });
-  
+
   // Sort dates in descending order
   const sortedDates = Object.keys(groupedTransactions).sort((a, b) => {
     return new Date(b).getTime() - new Date(a).getTime();
   });
-  
+
   return (
     <Sidebar>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Financeiro</h1>
-          
+          <h1 className="text-2xl font-bold tracking-tight">Frente De Caixa</h1>
+
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Tabs
               defaultValue="month"
@@ -213,13 +213,9 @@ export default function FinancePage() {
             >
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="today">Hoje</TabsTrigger>
-                <TabsTrigger value="week">Semana</TabsTrigger>
-                <TabsTrigger value="month">Mês</TabsTrigger>
-                <TabsTrigger value="year">Ano</TabsTrigger>
-                <TabsTrigger value="custom">Personalizado</TabsTrigger>
               </TabsList>
             </Tabs>
-            
+
             {periodType === "custom" && (
               <Popover>
                 <PopoverTrigger asChild>
@@ -253,13 +249,9 @@ export default function FinancePage() {
                 </PopoverContent>
               </Popover>
             )}
-            
+
             <Dialog open={newTransactionOpen} onOpenChange={setNewTransactionOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nova Transação
-                </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -268,7 +260,7 @@ export default function FinancePage() {
                     Registre uma nova transação financeira.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -303,7 +295,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="amount"
@@ -320,7 +312,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="description"
@@ -334,7 +326,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="date"
@@ -373,7 +365,7 @@ export default function FinancePage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <DialogFooter>
                       <Button type="submit" disabled={createTransactionMutation.isPending}>
                         {createTransactionMutation.isPending ? "Salvando..." : "Salvar"}
@@ -385,7 +377,7 @@ export default function FinancePage() {
             </Dialog>
           </div>
         </div>
-        
+
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
@@ -402,7 +394,7 @@ export default function FinancePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -417,7 +409,7 @@ export default function FinancePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -438,91 +430,91 @@ export default function FinancePage() {
             </CardContent>
           </Card>
         </div>
-        
-        {/* Transactions Table */}
+
+        {/* nova venda */}
         <Card>
           <CardHeader>
-            <CardTitle>Transações</CardTitle>
+            <CardTitle>Nova venda</CardTitle>
             <CardDescription>
-              Histórico de transações financeiras.
+              Insira uma nova venda.
             </CardDescription>
           </CardHeader>
           <CardContent>
-              {isTransactionsLoading ? (
-                <div className="text-center py-4">Carregando transações...</div>
-              ) : sortedDates.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground">
-                  Nenhuma transação encontrada para este período.
-                </div>
-              ) : (
-                <div>
-                  {sortedDates.map((date) => (
-                    <div key={date} className="mb-6">
-                      <h3 className="text-sm font-medium mb-2">
-                        {format(new Date(date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </h3>
-                      
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead className="text-right">Valor</TableHead>
+            {isTransactionsLoading ? (
+              <div className="text-center py-4">Carregando transações...</div>
+            ) : sortedDates.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                Nenhuma transação encontrada para este período.
+              </div>
+            ) : (
+              <div>
+                {sortedDates.map((date) => (
+                  <div key={date} className="mb-6">
+                    <h3 className="text-sm font-medium mb-2">
+                      {format(new Date(date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </h3>
+
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {groupedTransactions[date].map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell>
+                              {transaction.type === "income" ? (
+                                <div className="flex items-center text-green-600">
+                                  <PlusCircle className="h-4 w-4 mr-1" />
+                                  <span>Receita</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center text-red-600">
+                                  <MinusCircle className="h-4 w-4 mr-1" />
+                                  <span>Despesa</span>
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>{transaction.description}</TableCell>
+                            <TableCell className={cn(
+                              "text-right font-medium",
+                              transaction.type === "income" ? "text-green-600" : "text-red-600"
+                            )}>
+                              {transaction.type === "income" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
+                            </TableCell>
                           </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {groupedTransactions[date].map((transaction) => (
-                            <TableRow key={transaction.id}>
-                              <TableCell>
-                                {transaction.type === "income" ? (
-                                  <div className="flex items-center text-green-600">
-                                    <PlusCircle className="h-4 w-4 mr-1" />
-                                    <span>Receita</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center text-red-600">
-                                    <MinusCircle className="h-4 w-4 mr-1" />
-                                    <span>Despesa</span>
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>{transaction.description}</TableCell>
-                              <TableCell className={cn(
-                                "text-right font-medium",
-                                transaction.type === "income" ? "text-green-600" : "text-red-600"
-                              )}>
-                                {transaction.type === "income" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      
-                      <div className="flex justify-between items-center mt-2 px-3">
-                        <div className="text-sm text-muted-foreground">
-                          Total do dia:
-                        </div>
-                        <div className="text-sm font-medium">
-                          {(() => {
-                            const dailyTotal = groupedTransactions[date].reduce((sum, t) => {
-                              return sum + (t.type === "income" ? t.amount : -t.amount);
-                            }, 0);
-                            
-                            return (
-                              <span className={dailyTotal >= 0 ? "text-green-600" : "text-red-600"}>
-                                {dailyTotal >= 0 ? "+" : ""}R$ {dailyTotal.toFixed(2)}
-                              </span>
-                            );
-                          })()}
-                        </div>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    <div className="flex justify-between items-center mt-2 px-3">
+                      <div className="text-sm text-muted-foreground">
+                        Total do dia:
+                      </div>
+                      <div className="text-sm font-medium">
+                        {(() => {
+                          const dailyTotal = groupedTransactions[date].reduce((sum, t) => {
+                            return sum + (t.type === "income" ? t.amount : -t.amount);
+                          }, 0);
+
+                          return (
+                            <span className={dailyTotal >= 0 ? "text-green-600" : "text-red-600"}>
+                              {dailyTotal >= 0 ? "+" : ""}R$ {dailyTotal.toFixed(2)}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
-        
+
         {/* Outstanding Debts */}
         <Card className="mt-6">
           <CardHeader>
@@ -602,6 +594,6 @@ export default function FinancePage() {
           </CardContent>
         </Card>
       </div>
-     </Sidebar>
+    </Sidebar>
   );
 }

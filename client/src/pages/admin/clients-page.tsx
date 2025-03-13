@@ -44,7 +44,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter } from "lucide-react";
+import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter, CalendarRange } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@shared/schema";
@@ -61,6 +61,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
+import { format, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function ClientsPage() {
   const { toast } = useToast();
@@ -69,8 +73,12 @@ export default function ClientsPage() {
   const [clientDetailsOpen, setClientDetailsOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filterCriteria, setFilterCriteria] = useState<"all" | "visits" | "spent" | "recent">("all");
+  const [filterCriteria, setFilterCriteria] = useState<"all" | "visits" | "spent" | "recent" | "date">("all");
   const [filterValue, setFilterValue] = useState<"high" | "medium" | "low">("high");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subMonths(new Date(), 1),
+    to: new Date(),
+  });
   const isMobile = useMobile();
 
   // Fetch clients (all users with role "client")
@@ -118,7 +126,7 @@ export default function ClientsPage() {
       { id: 2, name: "Juliana Mendes", specialty: "Manicure" },
       { id: 3, name: "Roberto Alves", specialty: "Barbeiro" },
     ];
-    
+
     // Simulate returning a professional based on client ID
     return professionals[clientId % professionals.length];
   };
@@ -184,16 +192,16 @@ export default function ClientsPage() {
   const applyFilters = (clientList: any[]) => {
     // First filter by search query
     let filtered = clientList;
-    
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(client => 
+      filtered = filtered.filter(client =>
         client.name?.toLowerCase().includes(query) ||
         client.email?.toLowerCase().includes(query) ||
         (client.phone && client.phone.includes(query))
       );
     }
-    
+
     // Then apply criteria filters
     if (filterCriteria !== "all") {
       switch (filterCriteria) {
@@ -219,21 +227,32 @@ export default function ClientsPage() {
             const visitDate = new Date(client.lastVisit);
             const now = new Date();
             const daysDiff = Math.floor((now.getTime() - visitDate.getTime()) / (1000 * 60 * 60 * 24));
-            
+
             if (filterValue === "high") return daysDiff <= 7; // Last week
             if (filterValue === "medium") return daysDiff <= 30; // Last month
             return daysDiff > 30; // Older than a month
           });
           break;
+        case "date":
+          filtered = filtered.filter(client => {
+            if (!client.lastVisit || !dateRange?.from) return false;
+            const visitDate = new Date(client.lastVisit);
+
+            if (dateRange.to) {
+              return visitDate >= dateRange.from && visitDate <= dateRange.to;
+            }
+            return visitDate >= dateRange.from;
+          });
+          break;
       }
     }
-    
+
     return filtered;
   };
-  
+
   // Filter clients
   const filteredClients = applyFilters(clients);
-  
+
   // Filter top clients
   const filteredTopClients = applyFilters(topClients);
 
@@ -242,7 +261,6 @@ export default function ClientsPage() {
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-          
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-[300px]">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -253,7 +271,7 @@ export default function ClientsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -274,7 +292,7 @@ export default function ClientsPage() {
                       <Select
                         value={filterCriteria}
                         onValueChange={(value) =>
-                          setFilterCriteria(value as "all" | "visits" | "spent" | "recent")
+                          setFilterCriteria(value as "all" | "visits" | "spent" | "recent" | "date")
                         }
                       >
                         <SelectTrigger className="col-span-3">
@@ -285,10 +303,39 @@ export default function ClientsPage() {
                           <SelectItem value="visits">Visitas</SelectItem>
                           <SelectItem value="spent">Valor Gasto</SelectItem>
                           <SelectItem value="recent">Última Visita</SelectItem>
+                          <SelectItem value="date">Período</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    {filterCriteria !== "all" && (
+                    {filterCriteria === "date" ? (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium">Selecione o período</h4>
+                        <div className="grid gap-2">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            numberOfMonths={isMobile ? 1 : 2}
+                            locale={ptBR}
+                          />
+                          <div className="pt-2 text-sm text-center text-muted-foreground">
+                            {dateRange?.from ? (
+                              dateRange.to ? (
+                                <>
+                                  {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
+                                </>
+                              ) : (
+                                format(dateRange.from, "dd/MM/yyyy")
+                              )
+                            ) : (
+                              <span>Selecione um período</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ) : filterCriteria !== "all" ? (
                       <div className="grid grid-cols-3 items-center gap-4">
                         <Select
                           value={filterValue}
@@ -318,12 +365,16 @@ export default function ClientsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   <Button
                     onClick={() => {
                       setFilterCriteria("all");
                       setFilterValue("high");
+                      setDateRange({
+                        from: subMonths(new Date(), 1),
+                        to: new Date(),
+                      });
                       setFilterOpen(false);
                     }}
                   >
@@ -332,7 +383,7 @@ export default function ClientsPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            
+
             <Dialog open={newClientOpen} onOpenChange={setNewClientOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto">
@@ -347,7 +398,7 @@ export default function ClientsPage() {
                     Preencha os dados para cadastrar um novo cliente.
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -363,7 +414,7 @@ export default function ClientsPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -378,7 +429,7 @@ export default function ClientsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="phone"
@@ -393,7 +444,7 @@ export default function ClientsPage() {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={form.control}
                       name="address"
@@ -407,7 +458,7 @@ export default function ClientsPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="instagram"
@@ -421,7 +472,7 @@ export default function ClientsPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -436,7 +487,7 @@ export default function ClientsPage() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="password"
@@ -451,7 +502,7 @@ export default function ClientsPage() {
                         )}
                       />
                     </div>
-                    
+
                     <DialogFooter>
                       <Button type="submit" disabled={createClientMutation.isPending}>
                         {createClientMutation.isPending ? "Salvando..." : "Salvar"}
@@ -463,7 +514,7 @@ export default function ClientsPage() {
             </Dialog>
           </div>
         </div>
-        
+
         {/* Client Ranking Section */}
         <Card>
           <CardHeader className="pb-3">
@@ -477,55 +528,58 @@ export default function ClientsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {filteredTopClients.length === 0 ? 
-              (
-                <div className="col-span-3 flex flex-col items-center justify-center py-8 text-center">
-                  <UserIcon className="h-8 w-8 mb-2 text-muted-foreground" />
-                  <p className="text-muted-foreground">
-                    Nenhum cliente encontrado com os filtros selecionados
-                  </p>
-                  {(filterCriteria !== "all" || searchQuery) && (
-                    <Button
-                      variant="link"
-                      onClick={() => {
-                        setFilterCriteria("all");
-                        setFilterValue("high");
-                        setSearchQuery("");
-                      }}
-                      className="mt-2"
-                    >
-                      Limpar filtros
-                    </Button>
-                  )}
-                </div>
-              ) : 
-              (
-                filteredTopClients.map((client, index) => (
-                <div key={client.id} className="flex items-start space-x-4 p-3 rounded-lg border">
-                  <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-700">
-                    {index === 0 ? (
-                      <Star className="h-5 w-5 fill-current" />
-                    ) : (
-                      <span className="font-bold">{index + 1}</span>
+              {filteredTopClients.length === 0 ?
+                (
+                  <div className="col-span-3 flex flex-col items-center justify-center py-8 text-center">
+                    <UserIcon className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      Nenhum cliente encontrado com os filtros selecionados
+                    </p>
+                    {(filterCriteria !== "all" || searchQuery) && (
+                      <Button
+                        variant="link"
+                        onClick={() => {
+                          setFilterCriteria("all");
+                          setFilterValue("high");
+                          setSearchQuery("");
+                          setDateRange({
+                            from: subMonths(new Date(), 1),
+                            to: new Date(),
+                          });
+                        }}
+                        className="mt-2"
+                      >
+                        Limpar filtros
+                      </Button>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-medium">{client.name}</h4>
-                    <div className="flex flex-col mt-1">
-                      <span className="text-xs text-muted-foreground">{client.visits} visitas</span>
-                      <span className="text-xs text-muted-foreground">R$ {client.totalSpent.toFixed(2)}</span>
+                ) :
+                (
+                  filteredTopClients.map((client, index) => (
+                    <div key={client.id} className="flex items-start space-x-4 p-3 rounded-lg border">
+                      <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-700">
+                        {index === 0 ? (
+                          <Star className="h-5 w-5 fill-current" />
+                        ) : (
+                          <span className="font-bold">{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium">{client.name}</h4>
+                        <div className="flex flex-col mt-1">
+                          <span className="text-xs text-muted-foreground">{client.visits} visitas</span>
+                          <span className="text-xs text-muted-foreground">R$ {client.totalSpent.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="ml-auto">
+                        Top {index + 1}
+                      </Badge>
                     </div>
-                  </div>
-                  <Badge variant="outline" className="ml-auto">
-                    Top {index + 1}
-                  </Badge>
-                </div>
-              )))
-            }
+                  )))}
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Lista de Clientes</CardTitle>
@@ -611,7 +665,8 @@ export default function ClientsPage() {
                             </TableCell>
                           </TableRow>
                         );
-                      })}
+                      })
+                      }
                     </TableBody>
                   </Table>
                 </ScrollArea>

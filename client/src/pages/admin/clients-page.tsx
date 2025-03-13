@@ -44,7 +44,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter, CalendarRange } from "lucide-react";
+import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter, CalendarRange, Edit } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@shared/schema";
@@ -655,7 +655,6 @@ export default function ClientsPage() {
                                   >
                                     Ver detalhes
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem>Editar</DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem className="text-destructive">
                                     Excluir
@@ -675,6 +674,154 @@ export default function ClientsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Client Details Dialog */}
+      {selectedClient && (
+        <Dialog open={clientDetailsOpen} onOpenChange={setClientDetailsOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <UserIcon className="h-5 w-5 text-purple-600" />
+                Detalhes do Cliente
+              </DialogTitle>
+              <DialogDescription>
+                Informações completas do cliente
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              {/* Profile Information */}
+              <div>
+                <h3 className="text-lg font-medium">Informações do Perfil</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Nome</p>
+                    <p>{selectedClient.name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Email</p>
+                    <p>{selectedClient.email}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Telefone</p>
+                    <p>{selectedClient.phone || "Não informado"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Endereço</p>
+                    <p>{selectedClient.address || "Não informado"}</p>
+                  </div>
+                  {selectedClient.instagram && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Instagram</p>
+                      <div className="flex items-center gap-1">
+                        <Instagram className="h-4 w-4 text-pink-600" />
+                        <p>{selectedClient.instagram}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Attendance Information */}
+              <div>
+                <h3 className="text-lg font-medium">Informações de Atendimento</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Último Profissional</p>
+                    <div className="flex items-center gap-2">
+                      <Scissors className="h-4 w-4 text-purple-600" />
+                      <p>
+                        {getLastProfessional(selectedClient.id)?.name || "Nenhum atendimento"}
+                        {getLastProfessional(selectedClient.id) && (
+                          <span className="text-sm text-muted-foreground ml-1">
+                            ({getLastProfessional(selectedClient.id)?.specialty})
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Total de Visitas</p>
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                      <p>{topClients.find(c => c.id === selectedClient.id)?.visits || 0} visitas</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1 col-span-1 sm:col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground">Valor Total Gasto</p>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-600">
+                        R$ {topClients.find(c => c.id === selectedClient.id)?.totalSpent.toFixed(2) || "0.00"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Last Appointments */}
+              <div>
+                <h3 className="text-lg font-medium">Últimos Agendamentos</h3>
+                {clientAppointments.length > 0 ? (
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Serviço</TableHead>
+                          <TableHead>Profissional</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {clientAppointments.map((appointment) => (
+                          <TableRow key={appointment.id}>
+                            <TableCell>{format(new Date(appointment.date), "dd/MM/yyyy")}</TableCell>
+                            <TableCell>Serviço</TableCell>
+                            <TableCell>Profissional</TableCell>
+                            <TableCell>
+                              <Badge
+                                className={appointment.status === "completed" ? "bg-green-600" : 
+                                          appointment.status === "cancelled" ? "bg-red-600" : 
+                                          "bg-yellow-600"}
+                              >
+                                {appointment.status === "completed" ? "Concluído" :
+                                 appointment.status === "cancelled" ? "Cancelado" :
+                                 appointment.status === "no-show" ? "Não Compareceu" : "Agendado"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center border rounded-md mt-2">
+                    <Calendar className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <p className="text-muted-foreground">Nenhum agendamento encontrado</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setClientDetailsOpen(false)}>
+                Fechar
+              </Button>
+              <Button onClick={() => {
+                // Here you would implement the edit functionality
+                // For example, open a new dialog with a form to edit the client
+                toast({
+                  title: "Funcionalidade em desenvolvimento",
+                  description: "A edição de clientes será implementada em breve.",
+                });
+              }}>
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Cliente
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Sidebar>
   );
 }

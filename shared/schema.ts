@@ -91,7 +91,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 
 // Auth schemas for login
 export const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
+  email: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 

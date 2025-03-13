@@ -1,0 +1,733 @@
+/**
+ * ID do documento modelo - substitua pelo ID do seu Google Docs Template
+ */
+
+/*
+ * getConfig
+ * ------------------------------------------------------------------
+ * Reads configuration values from the "Configurações" sheet of the active spreadsheet.
+ * - C1: Google Docs Template ID.
+ * - C2: Destination Folder ID.
+ * - C3: Administrator Email.
+ *
+ * @returns {Object} An object containing the properties:
+ *   TEMPLATE_ID, FOLDER_ID, and ADMIN_EMAIL.
+ */
+function getConfig() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Configurações");
+  if (!sheet) throw new Error("Planilha 'Configurações' não encontrada.");
+  
+  var templateId = sheet.getRange("C1").getValue();
+  var folderId = sheet.getRange("C2").getValue();
+  var adminEmail = sheet.getRange("C3").getValue();
+  
+  return {
+    TEMPLATE_ID: templateId,
+    FOLDER_ID: folderId,
+    ADMIN_EMAIL: adminEmail
+  };
+}
+
+var CONFIG = getConfig();
+
+/*
+ * testFormSubmit
+ * ------------------------------------------------------------------
+ * Simulates a form submission event to test the processing workflow.
+ * Constructs a sample event object and calls onFormSubmit.
+ */
+function testFormSubmit() {
+  var e = {
+    values: ["2025-01-14 15:30:00", "Nome Teste", "555-1234", "dalvanmiotto@gmail.com", "Condomínio X", "Endereço Y", "Cidade Z", "De 120 a 200", "2025-02-01"]
+  };
+  Logger.log("Objeto de evento simulado: " + JSON.stringify(e));
+  onFormSubmit(e);
+}
+
+/*
+ * onFormSubmit
+ * ------------------------------------------------------------------
+ * Main function triggered by a form submission.
+ * This function verifies the event payload, extracts form data,
+ * validates required fields, calculates module information, and:
+ *   - Generates substitution values,
+ *   - Creates a new document from a template,
+ *   - Converts the document to a PDF,
+ *   - Saves the PDF in the configured folder,
+ *   - Sends the PDF to the client, and
+ *   - Notifies the admin (if necessary).
+ *
+ * Error handling is applied to ensure any issues are logged.
+ *
+ * @param {Object} e - The event object with a "values" property (and optionally a "range").
+ */
+function onFormSubmit(e) {
+  try {
+    Logger.log("Início do processamento do formulário.");
+
+    // Validação do evento
+    if (!e || !e.values) {
+      throw new Error("Evento inválido ou sem valores. Verifique o gatilho ou os dados do formulário.");
+    }
+
+    // Extrai dados da linha recém adicionada
+    var formData = getFormData(e);
+    Logger.log("Dados do formulário extraídos: " + JSON.stringify(formData));
+
+    // Validação básica dos dados
+    if (!formData || !formData.nomeCompleto || !formData.email) {
+      throw new Error("Dados do formulário estão incompletos ou inválidos.");
+    }
+
+    // verifica se formdata.qtdUnidades é 0. Se for 0, então significa que é uma insersão manual.
+    if (!formData.manual === true) {
+      Logger.log("Inserção manual detectada. Criando orçamento manual.");
+      criarOrcamentoManual(formData);
+      return;
+    }
+
+    // Determina o número de módulos e verifica se é um grande projeto
+    var modulos = determinarModulos(formData.qtdUnidades);
+    Logger.log("Informações sobre módulos calculadas: " + JSON.stringify(modulos));
+
+    if (modulos.grandeProjeto) {
+      Logger.log("Projeto identificado como grande. Enviando e-mail ao administrador.");
+      sendEmailToAdmin(formData);
+      return; // Não gera orçamento para grandes projetos
+    }
+
+
+    // Cria objeto de substituições para o template com dados do formulário
+    var replacements = createReplacements(formData, modulos);
+    Logger.log("Substituições criadas: " + JSON.stringify(replacements));
+
+    // Envolve apenas o trecho de cálculo do CODIGO em um try/catch
+    try {
+      var rowNumber = e.range.getRow();
+      var codigoGerado = rowNumber + 5210;
+      replacements["{{CODIGO}}"] = codigoGerado;
+      Logger.log("CODIGO gerado: " + codigoGerado);
+    } catch (err) {
+      var codigoGerado = 5210;
+      replacements["{{CODIGO}}"] = codigoGerado;
+      Logger.log("Não foi possível calcular CODIGO: " + err);
+      // Podemos continuar a execução normalmente
+    }
+
+    // Adiciona dados extras da planilha "Dados"
+    appendDataReplacements(replacements, modulos);
+    Logger.log("Dados adicionais da planilha aplicados.");
+
+    // Gera o documento a partir do template com as substituições
+    var newDocId = generateDocumentFromTemplate(CONFIG.TEMPLATE_ID, replacements, modulos);
+    Logger.log("Documento gerado com ID: " + newDocId);
+
+
+    // Converte o documento em PDF
+    var pdfBlob = convertDocToPdf(newDocId);
+    Logger.log("Documento convertido para PDF.");
+
+    // Salvar PDF em uma pasta específica
+    var folder = DriveApp.getFolderById(CONFIG.FOLDER_ID);
+    folder.createFile(pdfBlob);
+    Logger.log("PDF salvo na pasta de destino.");
+
+    // Enviar PDF por e-mail
+    sendEmail(pdfBlob, formData.email, "[Proposta Comercial] Airlcoker - Armários Inteligentes", createEmailBody(formData));
+    Logger.log("PDF enviado por e-mail para: " + formData.email);
+
+    // Envia notificação por e-mail
+    sendEmailToAdminNew(formData);
+
+  } catch (error) {
+    Logger.log("Erro ao processar submissão: " + error.message);
+  }
+}
+
+/*
+ * generateDocumentFromTemplate
+ * ------------------------------------------------------------------
+ * Creates a new document by copying a template file.
+ * Replaces placeholders in the document body, header, and footer using the provided replacements.
+ *
+ * @param {string} templateId - The ID of the Google Docs template.
+ * @param {Object} replacements - A mapping of placeholder keys to replacement values.
+ * @param {Object} modulos - An object containing module calculations.
+ * @returns {string} The ID of the newly generated document.
+ */
+function generateDocumentFromTemplate(templateId, replacements, modulos) {
+  var template = DriveApp.getFileById(templateId);
+  var folder = DriveApp.getFolderById(CONFIG.FOLDER_ID);
+
+  // Cria uma cópia do template na pasta de destino
+  var newDoc = template.makeCopy("Orçamento Airlocker - " + replacements["{{NOME_CONDOMINIO}}"] + " - " + formatModuloString(modulos.modulosPrincipais, modulos.modulosAuxiliares) + " - " + replacements["{{CARIMBO}}"]);
+  var newDocId = newDoc.getId();
+  var doc = DocumentApp.openById(newDocId);
+
+
+  // Remove a linha do módulo auxiliar caso não existam auxiliares
+  if (modulos.modulosAuxiliares === 0) {
+    Logger.log("Nenhum módulo auxiliar encontrado. Removendo a linha do documento.");
+    removeAuxiliarRow(newDocId);
+  }
+
+  // Acessa as diferentes partes do documento
+  var body = doc.getBody();
+  var header = doc.getHeader();
+  var footer = doc.getFooter();
+
+  // Substitui no corpo
+  replacePlaceholdersInElement(body, replacements);
+
+  // Verifica e substitui no cabeçalho
+  if (header) {
+    Logger.log("Substituindo no Cabeçalho");
+    replacePlaceholdersInElement(header, replacements);
+  } else {
+    Logger.log("Cabeçalho não encontrado.");
+  }
+
+  // Verifica e substitui no rodapé
+  if (footer) {
+    Logger.log("Substituindo no Rodapé");
+    replacePlaceholdersInElement(footer, replacements);
+  } else {
+    Logger.log("Rodapé não encontrado.");
+  }
+
+  doc.saveAndClose();
+  return newDocId;
+}
+
+/*
+ * replacePlaceholdersInElement
+ * ------------------------------------------------------------------
+ * Iterates over all placeholders provided and replaces them within the given document element.
+ *
+ * @param {Element} element - A part of the document (body, header, or footer).
+ * @param {Object} replacements - An object whose keys are the placeholders and values are the substitution texts.
+ */
+function replacePlaceholdersInElement(element, replacements) {
+  for (var placeholder in replacements) {
+    var replaced = element.replaceText(placeholder, replacements[placeholder]);
+    if (replaced) {
+      Logger.log("Substituindo: " + placeholder + " por: " + replacements[placeholder]);
+    } else {
+      Logger.log("Não foi possível substituir o placeholder: " + placeholder);
+    }
+  }
+}
+
+/*
+ * formatDate
+ * ------------------------------------------------------------------
+ * Formats a given timestamp as "dd/mm/aa".
+ *
+ * @param {string|Date} timestamp - The timestamp to format.
+ * @returns {string} The formatted date string.
+ */
+function formatDate(timestamp) {
+  var date = new Date(timestamp);
+  var day = String(date.getDate()).padStart(2, "0");
+  var month = String(date.getMonth() + 1).padStart(2, "0");
+  var year = String(date.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+}
+
+/*
+ * convertDocToPdf
+ * ------------------------------------------------------------------
+ * Converts a Google Document identified by its ID into a PDF Blob.
+ *
+ * @param {string} docId - The ID of the document.
+ * @returns {Blob} The PDF Blob representation of the document.
+ */
+function convertDocToPdf(docId) {
+  var doc = DriveApp.getFileById(docId);
+  return doc.getAs("application/pdf");
+}
+
+/*
+ * sendEmail
+ * ------------------------------------------------------------------
+ * Sends an email with the generated PDF attached.
+ * The email's HTML body and subject are provided as parameters.
+ *
+ * @param {Blob} pdfBlob - The PDF to attach.
+ * @param {string} recipient - The email address of the recipient.
+ * @param {string} subject - The subject line of the email.
+ * @param {string} body - The HTML body content of the email.
+ */
+function sendEmail(pdfBlob, recipient, subject, body) {
+  GmailApp.sendEmail(recipient, subject, "", {
+    htmlBody: body,
+    attachments: [pdfBlob]
+  });
+}
+
+/*
+ * getFormData
+ * ------------------------------------------------------------------
+ * Extracts and maps the raw values from the form submission event to a structured object.
+ *
+ * @param {Object} e - The event object from the form submission.
+ * @returns {Object} The structured form data.
+ */
+function getFormData(e) {
+  var values = e.values;
+
+  return {
+    carimbo: values[0], // Carimbo de data/hora
+    nomeCompleto: values[1], // Nome completo
+    telefone: values[2], // Telefone
+    email: values[3], // E-mail
+    nomeCondominio: values[4], // Nome do condomínio
+    endereco: values[5], // Endereço
+    cidade: values[6], // Cidade
+    qtdUnidades: values[7], // Quantidade de unidades habitacionais
+    dataInstalacao: values[8] // Data de instalação
+  };
+}
+
+/*
+ * determinarModulos
+ * ------------------------------------------------------------------
+ * Determines module requirements based on the given range of units provided.
+ * It sets the number of main and auxiliary modules or flags the project as "large".
+ *
+ * @param {string} qtdUnidades - The range description for the units (e.g., "De 120 a 200").
+ * @returns {Object} An object with:
+ *   modulosPrincipais, modulosAuxiliares, and grandeProjeto (boolean).
+ */
+function determinarModulos(qtdUnidades) {
+  var resultado = { modulosPrincipais: 0, modulosAuxiliares: 0, grandeProjeto: false };
+  var unidades = parseInt(qtdUnidades.match(/\d+/)[0]);
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Proposta Comercial");
+  if (!sheet) throw new Error("Planilha 'Proposta Comercial' não encontrada.");
+
+  var ranges = sheet.getRange("A4:A12").getValues().flat();
+  var thresholds = ranges.map(function(value) {
+    return parseInt(value);
+  });
+
+  if (unidades <= thresholds[0]) {
+    resultado.modulosPrincipais = 1;
+    resultado.modulosAuxiliares = 1;
+  } else if (unidades > thresholds[0] && unidades <= thresholds[1]) {
+    resultado.modulosPrincipais = 1;
+    resultado.modulosAuxiliares = 1;
+  } else if (unidades > thresholds[1] && unidades <= thresholds[2]) {
+    resultado.modulosPrincipais = 1;
+    resultado.modulosAuxiliares = 1;
+  } else if (unidades >= thresholds[2] && unidades < thresholds[3]) {
+    resultado.modulosPrincipais = 1;
+    resultado.modulosAuxiliares = 2;
+  } else if (unidades >= thresholds[3] && unidades < thresholds[4]) {
+    resultado.modulosPrincipais = 2;
+    resultado.modulosAuxiliares = 2;
+  } else if (unidades >= thresholds[4] && unidades < thresholds[5]) {
+    resultado.modulosPrincipais = 2;
+    resultado.modulosAuxiliares = 3;
+  } else if (unidades >= thresholds[5] && unidades < thresholds[6]) {
+    resultado.modulosPrincipais = 2;
+    resultado.modulosAuxiliares = 4;
+  } else {
+    resultado.grandeProjeto = true;
+  }
+
+  return resultado;
+}
+
+/*
+ * removeAuxiliarRow
+ * ------------------------------------------------------------------
+ * Searches the generated document for a table row containing the "{{MODULO_AUX}}" placeholder.
+ * If found, removes that row (useful when no auxiliary modules are required).
+ *
+ * @param {string} docId - The ID of the document to edit.
+ */
+function removeAuxiliarRow(docId) {
+  try {
+    var doc = DocumentApp.openById(docId);
+    var body = doc.getBody();
+    Logger.log("Documento aberto com sucesso.");
+
+    // Acessa todas as tabelas no documento
+    var tables = body.getTables();
+    var moduleFound = false;
+
+    // Loop para verificar cada tabela no documento
+    for (var i = 0; i < tables.length; i++) {
+      var table = tables[i];
+
+      // Percorre todas as linhas da tabela
+      for (var row = 0; row < table.getNumRows(); row++) {
+        // Percorre todas as células da linha
+        for (var cell = 0; table.getRow(row) && cell < table.getRow(row).getNumCells(); cell++) {
+          var cellText = table.getRow(row).getCell(cell).getText();
+
+          // Se encontrar o texto "{{MODULO_AUX}}", remove a linha
+          if (cellText.indexOf("{{MODULO_AUX}}") !== -1) {
+            table.removeRow(row);
+            Logger.log("Linha do módulo auxiliar removida.");
+            moduleFound = true;
+            break;
+          }
+        }
+
+        // Se já encontrou e removeu a linha, sai do loop
+        if (moduleFound) {
+          break;
+        }
+      }
+
+      // Se já encontrou o módulo auxiliar, sai do loop da tabela
+      if (moduleFound) {
+        break;
+      }
+    }
+
+    if (!moduleFound) {
+      Logger.log("Módulo auxiliar não encontrado. Nenhuma remoção necessária.");
+    }
+
+    // Salva e fecha o documento
+    //doc.save();
+    Logger.log("Doc com sucesso.");
+
+  } catch (error) {
+    Logger.log("Erro ao remover a linha do módulo auxiliar: " + error.message);
+  }
+}
+
+/*
+ * sendEmailToAdmin
+ * ------------------------------------------------------------------
+ * Notifies the administrator by email if a large project is received.
+ *
+ * @param {Object} formData - The form data containing the project details.
+ */
+function sendEmailToAdmin(formData) {
+  var subject = "Novo grande projeto recebido";
+  var body = "Um grande projeto foi recebido com as seguintes informações:\n" +
+    "Nome: " + formData.nomeCompleto + "\n" +
+    "E-mail: " + formData.email + "\n" +
+    "Quantidade de unidades: " + formData.qtdUnidades;
+
+  GmailApp.sendEmail(CONFIG.ADMIN_EMAIL, subject, body);
+}
+
+/*
+ * sendEmailToAdminNew
+ * ------------------------------------------------------------------
+ * Sends a notification email to the administrator when a new budget is generated.
+ *
+ * @param {Object} formData - The form data with details used in notification.
+ */
+function sendEmailToAdminNew(formData) {
+  var subject = "Novo Orçamento Gerado - " + formData.qtdUnidades;
+  var body = "Um novo orçamento foi gerado automáticamente:\n" +
+    "Nome: " + formData.nomeCompleto + "\n" +
+    "E-mail: " + formData.email + "\n" +
+    "Quantidade de unidades: " + formData.qtdUnidades;
+
+  GmailApp.sendEmail(CONFIG.ADMIN_EMAIL, subject, body);
+}
+
+/*
+ * createReplacements
+ * ------------------------------------------------------------------
+ * Creates a mapping (object) of placeholders to actual values that will be used
+ * to substitute within the document template.
+ *
+ * @param {Object} formData - The structured form data.
+ * @param {Object} modulos - The calculated module data.
+ * @returns {Object} An object with key/value pairs for text replacement.
+ */
+function createReplacements(formData, modulos) {
+  var replacements = {
+    "{{CARIMBO}}": formatDate(new Date()),
+    "{{NOME_COMPLETO}}": formData.nomeCompleto,
+    "{{TELEFONE_CONTATO}}": formData.telefone,
+    "{{EMAIL_CLIENTE}}": formData.email,
+    "{{QTD_UNIDADES}}": formData.qtdUnidades,
+    "{{NOME_CONDOMINIO}}": formData.nomeCondominio,
+    "{{ENDERECO_CONDOMINIO}}": formData.endereco,
+    "{{CIDADE_CONDOMINIO}}": formData.cidade,
+    "{{MODULO_PRIN}}": modulos.modulosPrincipais + " Módulo Principal",
+    "{{MODULO_AUX}}": modulos.modulosAuxiliares > 0 ? modulos.modulosAuxiliares + " Módulo Auxiliar" : "{{MODULO_AUX}}"
+  };
+
+  return replacements;
+}
+
+/*
+ * appendDataReplacements
+ * ------------------------------------------------------------------
+ * Enhances the replacements object with additional data sourced from the "Dados" sheet,
+ * including calculated values for various service packages.
+ *
+ * @param {Object} replacements - The current mapping of placeholders.
+ * @param {Object} modulos - The module calculation details.
+ */
+function appendDataReplacements(replacements, modulos) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetValores = ss.getSheetByName("Dados");
+
+  if (!sheetValores) {
+    throw new Error("A planilha 'Dados' não foi encontrada.");
+  }
+
+
+  replacements["{{QTD-PORTAS}}"] = gerarDescricaoPortas(modulos.modulosPrincipais,modulos.modulosAuxiliares);
+  replacements["{{NUN-MODULOS}}"] = formatModuloString(modulos.modulosPrincipais, modulos.modulosAuxiliares);
+
+  var valores;
+  try {
+    valores = sheetValores.getRange("B2:E3").getValues();
+  } catch (error) {
+    throw new Error("Erro ao acessar o intervalo 'B2:E3' na planilha 'Dados'.");
+  }
+
+  replacements["{{mp.12}}"] = valores[0][0] * modulos.modulosPrincipais;
+  replacements["{{mp.24}}"] = valores[0][1] * modulos.modulosPrincipais;
+  replacements["{{mp.36}}"] = valores[0][2] * modulos.modulosPrincipais;
+  replacements["{{mp.48}}"] = valores[0][3] * modulos.modulosPrincipais;
+
+
+
+  if (modulos.modulosAuxiliares > 0) {
+    replacements["{{ma.12}}"] = valores[1][0] * modulos.modulosAuxiliares;
+    replacements["{{ma.24}}"] = valores[1][1] * modulos.modulosAuxiliares;
+    replacements["{{ma.36}}"] = valores[1][2] * modulos.modulosAuxiliares;
+    replacements["{{ma.48}}"] = valores[1][3] * modulos.modulosAuxiliares;
+  }
+
+  replacements["{{d2.12}}"] = 0;
+  replacements["{{v2.12}}"] = replacements["{{mp.12}}"] + (replacements["{{ma.12}}"] || 0);
+  replacements["{{v2.24}}"] = replacements["{{mp.24}}"] + (replacements["{{ma.24}}"] || 0);
+  replacements["{{v2.36}}"] = replacements["{{mp.36}}"] + (replacements["{{ma.36}}"] || 0);
+  replacements["{{v2.48}}"] = replacements["{{mp.48}}"] + (replacements["{{ma.48}}"] || 0);
+
+  replacements["{{d2.24}}"] = (replacements["{{v2.24}}"] - replacements["{{v2.12}}"]) * -1;
+  replacements["{{d2.36}}"] = (replacements["{{v2.36}}"] - replacements["{{v2.12}}"]) * -1;
+  replacements["{{d2.48}}"] = (replacements["{{v2.48}}"] - replacements["{{v2.12}}"]) * -1;
+  var valores2;
+  try {
+    valores2 = sheetValores.getRange("B10:E11").getValues(); // Altere para o intervalo correto para os valores fixos
+  } catch (error) {
+    throw new Error("Erro ao acessar o intervalo 'B10:E11' na planilha 'Dados'.");
+  }
+
+  // Substituições para os valores fixos (instalação e frete)
+  replacements["{{i.24}}"] = valores2[0][1];  // Instalação 24 meses
+  replacements["{{i.12}}"] = valores2[0][0];  // Instalação 12 meses
+  replacements["{{i.36}}"] = valores2[0][2];  // Instalação 36 meses
+  replacements["{{i.48}}"] = valores2[0][3];  // Instalação 48 meses
+
+  if (modulos.modulosAuxiliares > 0) {
+    replacements["{{f.12}}"] =
+      (valores2[1][0] * modulos.modulosAuxiliares * 0.8) + (valores2[1][0] * modulos.modulosPrincipais);  // Frete 12 meses
+    replacements["{{f.24}}"] =
+      (valores2[1][1] * modulos.modulosAuxiliares * 0.8) + (valores2[1][1] * modulos.modulosPrincipais);  // Frete 24 meses
+    replacements["{{f.36}}"] =
+      (valores2[1][2] * modulos.modulosAuxiliares * 0.8) + (valores2[1][2] * modulos.modulosPrincipais);  // Frete 36 meses
+    replacements["{{f.48}}"] =
+      (valores2[1][3] * modulos.modulosAuxiliares * 0.8) + (valores2[1][3] * modulos.modulosPrincipais);  // Frete 48 meses
+  } else {
+    replacements["{{f.12}}"] = valores2[1][0] * modulos.modulosPrincipais;  // Frete 12 meses
+    replacements["{{f.24}}"] = valores2[1][1] * modulos.modulosPrincipais;  // Frete 24 meses
+    replacements["{{f.36}}"] = valores2[1][2] * modulos.modulosPrincipais;  // Frete 36 meses
+    replacements["{{f.48}}"] = valores2[1][3] * modulos.modulosPrincipais;  // Frete 48 meses
+  }
+  // Valores finais (considerando instalação, frete, e descontos)
+  replacements["{{v.12}}"] = replacements["{{i.12}}"] + replacements["{{f.12}}"];  // Valor final 12 meses
+  replacements["{{v.24}}"] = replacements["{{i.24}}"] + replacements["{{f.24}}"];  // Valor final 24 meses
+  replacements["{{v.36}}"] = replacements["{{i.36}}"] + replacements["{{f.36}}"];  // Valor final 36 meses
+  replacements["{{v.48}}"] = replacements["{{i.48}}"] + replacements["{{f.48}}"];  // Valor final 48 meses
+
+
+  // Calcular os descontos (com base nos valores fixos)
+  replacements["{{d.12}}"] = 0; // Desconto 12 meses
+  replacements["{{d.24}}"] = (replacements["{{v.24}}"] - replacements["{{v.12}}"]) * -1;  // Desconto 24 meses
+  replacements["{{d.36}}"] = (replacements["{{v.36}}"] - replacements["{{v.12}}"]) * -1;  // Desconto 36 meses
+  replacements["{{d.48}}"] = (replacements["{{v.48}}"] - replacements["{{v.12}}"]) * -1;  // Desconto 48 meses
+
+
+
+
+}
+
+/*
+ * formatModuloString
+ * ------------------------------------------------------------------
+ * Constructs a human-readable summary of the module configuration.
+ *
+ * @param {number} princ - The number of main modules.
+ * @param {number} aux - The number of auxiliary modules.
+ * @returns {string} A formatted string summarizing the module setup.
+ */
+function formatModuloString(princ, aux) {
+  var texto = "";
+
+  // Parte de Módulo(s) Principal(is)
+  if (princ > 0) {
+    if (princ === 1) {
+      texto += "1 Módulo Principal";
+    } else {
+      texto += princ + " Módulos Principais";
+    }
+  }
+
+  // Se há principal e auxiliar, adiciona " + " no meio
+  if (princ > 0 && aux > 0) {
+    texto += " + ";
+  }
+
+  // Parte de Módulo(s) Auxiliar(es)
+  if (aux > 0) {
+    if (aux === 1) {
+      texto += "1 Módulo Auxiliar";
+    } else {
+      texto += aux + " Módulos Auxiliares";
+    }
+  }
+
+  // Caso não tenha nenhum módulo principal nem auxiliar
+  if (princ === 0 && aux === 0) {
+    texto = "Nenhum módulo selecionado";
+  }
+
+  return texto;
+}
+
+/*
+ * gerarDescricaoPortas
+ * ------------------------------------------------------------------
+ * Calculates and returns a descriptive string for the door count based on the module counts.
+ *
+ * @param {number} modulosPrincipais - Count of main modules.
+ * @param {number} modulosAuxiliares - Count of auxiliary modules.
+ * @returns {string} A descriptive string of the total door count and composition.
+ */
+function gerarDescricaoPortas(modulosPrincipais, modulosAuxiliares) {
+  // Cálculo de cada tipo
+  var totalPequenas = (6 * modulosPrincipais) + (16 * modulosAuxiliares);
+  var totalMedias = 2 * modulosPrincipais;
+  var totalGrandes = 1 * modulosPrincipais;
+
+  // Soma geral de portas
+  var totalPortas = totalPequenas + totalMedias + totalGrandes;
+
+  // Monta a string no formato desejado
+  return totalPortas + " Portas ("
+    + totalPequenas + " Pequenas, "
+    + totalMedias + " Médias e "
+    + totalGrandes + " Grande)";
+}
+
+/*
+ * createEmailBody
+ * ------------------------------------------------------------------
+ * Generates a professional, HTML formatted email body using the form data.
+ * This is used when sending the generated budget proposal to the client.
+ *
+ * @param {Object} formData - The form data containing client and project details.
+ * @returns {string} An HTML string representing the email content.
+ */
+function createEmailBody(formData) {
+  return `
+      `;
+}
+
+// Nova função: cria orçamento manual com dados da planilha "Orcamento"
+function criarOrcamentoManual() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Orcamento");
+  if (!sheet) throw new Error("Planilha 'Orcamento' não encontrada.");
+  
+  // Ler dados da planilha
+  var nomeCliente = sheet.getRange("B2").getValue();
+  var telefoneCliente = sheet.getRange("B3").getValue();
+  var nomeCondominio = sheet.getRange("B4").getValue();
+  var cepCondominio = sheet.getRange("B5").getValue();
+  var emailCondominio = sheet.getRange("B6").getValue();
+  var modulo1 = sheet.getRange("B7").getValue();
+  var modulo2 = sheet.getRange("B8").getValue();
+  var modulo3 = sheet.getRange("B9").getValue();
+  var modulo4 = sheet.getRange("B10").getValue();
+  var modulo5 = sheet.getRange("B11").getValue();
+  var modulo6 = sheet.getRange("B12").getValue();
+  var modulo7 = sheet.getRange("B13").getValue();
+  var modulo8 = sheet.getRange("B14").getValue();
+  
+  // Agrupa os módulos inseridos manualmente (ignorando valores vazios)
+  var modulosArray = [modulo1, modulo2, modulo3, modulo4, modulo5, modulo6, modulo7, modulo8]
+    .filter(item => item !== "" && item !== null);
+  var modulosText = modulosArray.join(" + ");
+  
+  // Cria o objeto de substituições customizado, utilizando as funções já existentes
+  var replacements = {
+    "{{CARIMBO}}": formatDate(new Date()),
+    "{{NOME_COMPLETO}}": nomeCliente,
+    "{{TELEFONE_CONTATO}}": telefoneCliente,
+    "{{EMAIL_CLIENTE}}": emailCondominio,
+    "{{NOME_CONDOMINIO}}": nomeCondominio,
+    "{{CEP_CONDOMINIO}}": cepCondominio,
+    "{{MODULOS}}": modulosText
+    // Se necessário, adicione outros placeholders que já estão sendo usados no template.
+  };
+  
+  // Cria o documento a partir do template (usando getConfig para obter o template e folder)
+  var template = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+  var folder = DriveApp.getFolderById(CONFIG.FOLDER_ID);
+  var docName = "Orçamento Airlocker - " + nomeCondominio + " - " + formatDate(new Date()) + " - " + modulosText;
+  var newDoc = template.makeCopy(docName, folder);
+  var newDocId = newDoc.getId();
+  var doc = DocumentApp.openById(newDocId);
+  
+  // Substitui os placeholders no documento usando a função já existente
+  replacePlaceholdersInElement(doc.getBody(), replacements);
+  var header = doc.getHeader();
+  if(header) replacePlaceholdersInElement(header, replacements);
+  var footer = doc.getFooter();
+  if(footer) replacePlaceholdersInElement(footer, replacements);
+  doc.saveAndClose();
+  
+  // Converte o documento em PDF, salva na pasta e envia o orçamento por e-mail
+  var pdfBlob = convertDocToPdf(newDocId);
+  folder.createFile(pdfBlob);
+  sendEmail(pdfBlob, emailCondominio, "[Proposta Comercial] Airlocker - Armários Inteligentes", createEmailBody({
+    nomeCompleto: nomeCliente,
+    telefone: telefoneCliente,
+    email: emailCondominio,
+    nomeCondominio: nomeCondominio,
+    cepCondominio: cepCondominio,
+    modulosText: modulosText,
+    carimbo: formatDate(new Date())
+  }));
+  
+  // Opcional: Notifica o administrador
+  sendEmailToAdminNew({
+    nomeCompleto: nomeCliente,
+    email: emailCondominio,
+    qtdUnidades: "" // Não aplicável para orçamento manual
+  });
+  
+  Logger.log("Orçamento manual criado com sucesso: " + newDocId);
+  return newDocId;
+}
+
+// Nova função de teste para orçamento manual
+function testOrcamentoManual() {
+  // Simula a execução da função manual (certifique-se de que a planilha "Orcamento" possui dados de teste)
+  var newDocId = criarOrcamentoManual();
+  Logger.log("Objeto de orçamento manual criado: " + newDocId);
+}
+
+
+
+

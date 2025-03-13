@@ -1,0 +1,588 @@
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml"
+    xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+
+<head>
+    <title></title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <!--[if !mso]>-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!--<![endif]-->
+    <meta name="x-apple-disable-message-reformatting" content="" />
+    <meta content="target-densitydpi=device-dpi" name="viewport" />
+    <meta content="true" name="HandheldFriendly" />
+    <meta content="width=device-width" name="viewport" />
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no" />
+    <style type="text/css">
+        table {
+            border-collapse: separate;
+            table-layout: fixed;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt
+        }
+
+        table td {
+            border-collapse: collapse
+        }
+
+        .ExternalClass {
+            width: 100%
+        }
+
+        .ExternalClass,
+        .ExternalClass p,
+        .ExternalClass span,
+        .ExternalClass font,
+        .ExternalClass td,
+        .ExternalClass div {
+            line-height: 100%
+        }
+
+        body,
+        a,
+        li,
+        p,
+        h1,
+        h2,
+        h3 {
+            -ms-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        html {
+            -webkit-text-size-adjust: none !important
+        }
+
+        body,
+        #innerTable {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale
+        }
+
+        #innerTable img+div {
+            display: none;
+            display: none !important
+        }
+
+        img {
+            Margin: 0;
+            padding: 0;
+            -ms-interpolation-mode: bicubic
+        }
+
+        h1,
+        h2,
+        h3,
+        p,
+        a {
+            line-height: inherit;
+            overflow-wrap: normal;
+            white-space: normal;
+            word-break: break-word
+        }
+
+        a {
+            text-decoration: none
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            min-width: 100% !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            display: inline-block !important;
+            border: 0;
+            padding: 0;
+            margin: 0
+        }
+
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important
+        }
+
+        u+#body a {
+            color: inherit;
+            text-decoration: none;
+            font-size: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+        }
+
+        a[href^="mailto"],
+        a[href^="tel"],
+        a[href^="sms"] {
+            color: inherit;
+            text-decoration: none
+        }
+    </style>
+    <style type="text/css">
+        @media (min-width: 481px) {
+            .hd {
+                display: none !important
+            }
+        }
+    </style>
+    <style type="text/css">
+        @media (max-width: 480px) {
+            .hm {
+                display: none !important
+            }
+        }
+    </style>
+    <!--[if !mso]>-->
+    <link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;700;800&amp;display=swap"
+        rel="stylesheet" type="text/css" />
+    <!--<![endif]-->
+    <!--[if mso]>
+    <xml>
+    <o:OfficeDocumentSettings>
+    <o:AllowPNG/>
+    <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
+</head>
+
+<body id="body" class="t70" style="min-width:100%;Margin:0px;padding:0px;background-color:#26074A;">
+    <div class="t69" style="background-color:#26074A;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" align="center">
+            <tr>
+                <td class="t68" style="font-size:0;line-height:0;mso-line-height-rule:exactly;background-color:#26074A;"
+                    valign="top" align="center">
+                    <!--[if mso]>
+    <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false">
+    <v:fill color="#26074A"/>
+    </v:background>
+    <![endif]-->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" align="center"
+                        id="innerTable">
+                        <tr>
+                            <td>
+                                <div class="t53"
+                                    style="mso-line-height-rule:exactly;mso-line-height-alt:45px;line-height:45px;font-size:1px;display:block;">
+                                    &nbsp;&nbsp;</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center">
+                                <table class="t57" role="presentation" cellpadding="0" cellspacing="0"
+                                    style="Margin-left:auto;Margin-right:auto;">
+                                    <tr>
+                                        <!--[if mso]>
+    <td width="600" class="t56" style="background-color:#F8F8F8;width:600px;">
+    <![endif]-->
+                                        <!--[if !mso]>-->
+                                        <td class="t56" style="background-color:#F8F8F8;width:600px;">
+                                            <!--<![endif]-->
+                                            <table class="t55" role="presentation" cellpadding="0" cellspacing="0"
+                                                width="100%" style="width:100%;">
+                                                <tr>
+                                                    <td class="t54" style="padding:0 50px 60px 50px;">
+                                                        <table role="presentation" width="100%" cellpadding="0"
+                                                            cellspacing="0" style="width:100% !important;">
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t4" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="255" class="t3" style="width:255px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t3" style="width:255px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t2" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t1">
+                                                                                            <div style="font-size:0px;">
+                                                                                                <img class="t0"
+                                                                                                    style="display:block;border:0;height:auto;width:100%;Margin:0;max-width:100%;"
+                                                                                                    width="255"
+                                                                                                    height="104.78125"
+                                                                                                    alt=""
+                                                                                                    src="https://airlockers.com.br/wp-content/uploads/2024/06/09ba1ace-172c-4d08-8af3-4396aa4e83ce.png" />
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t9" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="500" class="t8" style="width:500px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t8" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t7" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t6"
+                                                                                            style="padding:0 0 15px 0;">
+                                                                                            <h1 class="t5"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:26px;font-weight:800;font-style:normal;font-size:24px;text-decoration:none;text-transform:none;letter-spacing:-1.56px;direction:ltr;color:#191919;text-align:left;mso-line-height-rule:exactly;mso-text-raise:1px;">
+                                                                                                Proposta para:
+                                                                                                ${formData.nomeCondominio}
+                                                                                            </h1>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t14" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="500" class="t13" style="width:500px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t13" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t12" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t11"
+                                                                                            style="padding:0 0 22px 0;">
+                                                                                            <p class="t10"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                Prezado(a)
+                                                                                                ${formData.nomeCompleto}
+                                                                                            </p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t20" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+                                                                            <td width="500" class="t19" style="width:500px;">
+                                                                            <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t19" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t18" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t17"
+                                                                                            style="padding:0 0 22px 0;">
+                                                                                            <p class="t16"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                Meu nome é <span
+                                                                                                    class="t15"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">Dalvan</span>,
+                                                                                                sou diretor comercial da
+                                                                                                Airlocker em Porto
+                                                                                                Alegre e região
+                                                                                                metropolitana.</p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t27" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+                                                                            <td width="500" class="t26" style="width:500px;">
+                                                                            <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t26" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t25" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t24"
+                                                                                            style="padding:0 0 22px 0;">
+                                                                                            <p class="t23"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                <span class="t21"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">Obrigado
+                                                                                                </span>por entrar em
+                                                                                                contato com a Airlocker.
+                                                                                                Em <span class="t22"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">anexo</span>,
+                                                                                                enviamos o orçamento
+                                                                                                detalhado solicitado
+                                                                                                para o seu condomínio.
+                                                                                            </p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t33" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+                                                                                                <td width="500" class="t32" style="width:500px;">
+                                                                                                <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t32" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t31" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t30"
+                                                                                            style="padding:0 0 22px 0;">
+                                                                                            <p class="t29"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                Caso tenha dúvidas ou
+                                                                                                precise de mais
+                                                                                                informações, <span
+                                                                                                    class="t28"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">estamos
+                                                                                                    à disposição</span>
+                                                                                                para ajudar. Não hesite
+                                                                                                em nos contatar através
+                                                                                                do telefone ou e-mail
+                                                                                                abaixo.</p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t39" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="500" class="t38" style="width:500px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t38" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t37" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t36">
+                                                                                            <p class="t35"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                <span class="t34"
+                                                                                                    style="margin:0;Margin:0;font-weight:bold;mso-line-height-rule:exactly;">Contato</span>
+                                                                                            </p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t46" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="500" class="t45" style="width:500px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t45" style="width:500px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t44" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t43">
+                                                                                            <p class="t42"
+                                                                                                style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:14px;text-decoration:none;text-transform:none;letter-spacing:-0.56px;direction:ltr;color:#333333;text-align:left;mso-line-height-rule:exactly;mso-text-raise:2px;">
+                                                                                                Dalvan Miotto - Diretor
+                                                                                                Comercial POA e Região
+                                                                                                <br /><span class="t40"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">Telefone:
+                                                                                                </span>51
+                                                                                                99906-3747<br /><span
+                                                                                                    class="t41"
+                                                                                                    style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">E-mail:</span>
+                                                                                                dalvanmiotto@gmail.com
+                                                                                            </p>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="t48"
+                                                                        style="mso-line-height-rule:exactly;mso-line-height-alt:30px;line-height:30px;font-size:1px;display:block;">
+                                                                        &nbsp;&nbsp;</div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td align="center">
+                                                                    <table class="t52" role="presentation"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="Margin-left:auto;Margin-right:auto;">
+                                                                        <tr>
+                                                                            <!--[if mso]>
+    <td width="400" class="t51" style="background-color:#005918;overflow:hidden;width:400px;border-radius:44px 44px 44px 44px;">
+    <![endif]-->
+                                                                            <!--[if !mso]>-->
+                                                                            <td class="t51"
+                                                                                style="background-color:#005918;overflow:hidden;width:400px;border-radius:44px 44px 44px 44px;">
+                                                                                <!--<![endif]-->
+                                                                                <table class="t50" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    width="100%" style="width:100%;">
+                                                                                    <tr>
+                                                                                        <td class="t49"
+                                                                                            style="text-align:center;line-height:44px;mso-line-height-rule:exactly;mso-text-raise:10px;">
+                                                                                            <a class="t47"
+                                                                                                href="https://wa.me/5551999063747?text=Ola%2C+meu+nome+%C3%A9+${formData.nomeCompleto}%2C+fiz+um+or%C3%A7amento+para+o+condom%C3%ADnio+${formData.nomeCondominio}."
+                                                                                                style="display:block;margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:44px;font-weight:800;font-style:normal;font-size:12px;text-decoration:none;letter-spacing:2.4px;direction:ltr;color:#F8F8F8;text-align:center;mso-line-height-rule:exactly;mso-text-raise:10px;"
+                                                                                                target="_blank">CONVERSAR
+                                                                                                NO WHATSAPP</a></td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center">
+                                            <table class="t67" role="presentation" cellpadding="0" cellspacing="0"
+                                                style="Margin-left:auto;Margin-right:auto;">
+                                                <tr>
+                                                    <!--[if mso]>
+    <td width="600" class="t66" style="background-color:#26074A;width:600px;">
+    <![endif]-->
+                                                    <!--[if !mso]>-->
+                                                    <td class="t66" style="background-color:#26074A;width:600px;">
+                                                        <!--<![endif]-->
+                                                        <table class="t65" role="presentation" cellpadding="0"
+                                                            cellspacing="0" width="100%" style="width:100%;">
+                                                            <tr>
+                                                                <td class="t64" style="padding:48px 50px 48px 50px;">
+                                                                    <table role="presentation" width="100%"
+                                                                        cellpadding="0" cellspacing="0"
+                                                                        style="width:100% !important;">
+                                                                        <tr>
+                                                                            <td align="center">
+                                                                                <table class="t63" role="presentation"
+                                                                                    cellpadding="0" cellspacing="0"
+                                                                                    style="Margin-left:auto;Margin-right:auto;">
+                                                                                    <tr>
+                                                                                        <!--[if mso]>
+    <td width="500" class="t62" style="width:500px;">
+    <![endif]-->
+                                                                                        <!--[if !mso]>-->
+                                                                                        <td class="t62"
+                                                                                            style="width:500px;">
+                                                                                            <!--<![endif]-->
+                                                                                            <table class="t61"
+                                                                                                role="presentation"
+                                                                                                cellpadding="0"
+                                                                                                cellspacing="0"
+                                                                                                width="100%"
+                                                                                                style="width:100%;">
+                                                                                                <tr>
+                                                                                                    <td class="t60">
+                                                                                                        <p class="t59"
+                                                                                                            style="margin:0;Margin:0;font-family:Albert Sans,BlinkMacSystemFont,Segoe UI,Helvetica Neue,Arial,sans-serif;line-height:22px;font-weight:500;font-style:normal;font-size:12px;text-decoration:none;text-transform:none;direction:ltr;color:#888888;text-align:center;mso-line-height-rule:exactly;mso-text-raise:3px;">
+                                                                                                            <span
+                                                                                                                class="t58"
+                                                                                                                style="margin:0;Margin:0;font-weight:700;mso-line-height-rule:exactly;">Airlocker
+                                                                                                                - Maior
+                                                                                                                franquia
+                                                                                                                de Smart
+                                                                                                                Lockers
+                                                                                                                do
+                                                                                                                Brasil.</span>
+                                                                                                        </p>
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </table>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+    </div>
+    <div class="gmail-fix" style="display: none; white-space: nowrap; font: 15px courier; line-height: 0;">&nbsp; &nbsp;
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</div>
+</body>
+
+</html>

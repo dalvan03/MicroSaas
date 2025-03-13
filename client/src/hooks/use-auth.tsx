@@ -35,6 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
+      // Valida que email e password estão presentes
+      if (!credentials.email || !credentials.password) {
+        throw new Error("Missing credentials: email and password are required.");
+      }
+      console.log("Login credentials received:", credentials);
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },

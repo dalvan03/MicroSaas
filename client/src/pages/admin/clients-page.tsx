@@ -44,11 +44,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star } from "lucide-react";
+import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function ClientsPage() {
   const { toast } = useToast();
@@ -56,6 +68,9 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<User | null>(null);
   const [clientDetailsOpen, setClientDetailsOpen] = useState(false);
   const [newClientOpen, setNewClientOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterCriteria, setFilterCriteria] = useState<"all" | "visits" | "spent" | "recent">("all");
+  const [filterValue, setFilterValue] = useState<"high" | "medium" | "low">("high");
   const isMobile = useMobile();
 
   // Fetch clients (all users with role "client")
@@ -165,17 +180,62 @@ export default function ClientsPage() {
     });
   };
 
-  // Filter clients by search query
-  const filteredClients = clients.filter(client => {
-    if (!searchQuery) return true;
+  // Apply filters to clients
+  const applyFilters = (clientList: any[]) => {
+    // First filter by search query
+    let filtered = clientList;
     
-    const query = searchQuery.toLowerCase();
-    return (
-      client.name.toLowerCase().includes(query) ||
-      client.email.toLowerCase().includes(query) ||
-      (client.phone && client.phone.includes(query))
-    );
-  });
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(client => 
+        client.name?.toLowerCase().includes(query) ||
+        client.email?.toLowerCase().includes(query) ||
+        (client.phone && client.phone.includes(query))
+      );
+    }
+    
+    // Then apply criteria filters
+    if (filterCriteria !== "all") {
+      switch (filterCriteria) {
+        case "visits":
+          filtered = filtered.filter(client => {
+            const visits = client.visits || 0;
+            if (filterValue === "high") return visits >= 20;
+            if (filterValue === "medium") return visits >= 10 && visits < 20;
+            return visits < 10;
+          });
+          break;
+        case "spent":
+          filtered = filtered.filter(client => {
+            const spent = client.totalSpent || 0;
+            if (filterValue === "high") return spent >= 2000;
+            if (filterValue === "medium") return spent >= 1000 && spent < 2000;
+            return spent < 1000;
+          });
+          break;
+        case "recent":
+          filtered = filtered.filter(client => {
+            if (!client.lastVisit) return false;
+            const visitDate = new Date(client.lastVisit);
+            const now = new Date();
+            const daysDiff = Math.floor((now.getTime() - visitDate.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (filterValue === "high") return daysDiff <= 7; // Last week
+            if (filterValue === "medium") return daysDiff <= 30; // Last month
+            return daysDiff > 30; // Older than a month
+          });
+          break;
+      }
+    }
+    
+    return filtered;
+  };
+  
+  // Filter clients
+  const filteredClients = applyFilters(clients);
+  
+  // Filter top clients
+  const filteredTopClients = applyFilters(topClients);
 
   return (
     <Sidebar>
@@ -193,6 +253,85 @@ export default function ClientsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filtros
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Filtrar Clientes</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Filtre os clientes por critérios específicos.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      <Select
+                        value={filterCriteria}
+                        onValueChange={(value) =>
+                          setFilterCriteria(value as "all" | "visits" | "spent" | "recent")
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Critério" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="visits">Visitas</SelectItem>
+                          <SelectItem value="spent">Valor Gasto</SelectItem>
+                          <SelectItem value="recent">Última Visita</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {filterCriteria !== "all" && (
+                      <div className="grid grid-cols-3 items-center gap-4">
+                        <Select
+                          value={filterValue}
+                          onValueChange={(value) =>
+                            setFilterValue(value as "high" | "medium" | "low")
+                          }
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Valor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="high">
+                              {filterCriteria === "visits" && "Muitas visitas (20+)"}
+                              {filterCriteria === "spent" && "Alto valor (R$2000+)"}
+                              {filterCriteria === "recent" && "Última semana"}
+                            </SelectItem>
+                            <SelectItem value="medium">
+                              {filterCriteria === "visits" && "Médio (10-19 visitas)"}
+                              {filterCriteria === "spent" && "Médio (R$1000-1999)"}
+                              {filterCriteria === "recent" && "Último mês"}
+                            </SelectItem>
+                            <SelectItem value="low">
+                              {filterCriteria === "visits" && "Poucas visitas (<10)"}
+                              {filterCriteria === "spent" && "Baixo valor (<R$1000)"}
+                              {filterCriteria === "recent" && "Mais de um mês"}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setFilterCriteria("all");
+                      setFilterValue("high");
+                      setFilterOpen(false);
+                    }}
+                  >
+                    Limpar Filtros
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             
             <Dialog open={newClientOpen} onOpenChange={setNewClientOpen}>
               <DialogTrigger asChild>
@@ -338,7 +477,30 @@ export default function ClientsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {topClients.map((client, index) => (
+              {filteredTopClients.length === 0 ? 
+              (
+                <div className="col-span-3 flex flex-col items-center justify-center py-8 text-center">
+                  <UserIcon className="h-8 w-8 mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Nenhum cliente encontrado com os filtros selecionados
+                  </p>
+                  {(filterCriteria !== "all" || searchQuery) && (
+                    <Button
+                      variant="link"
+                      onClick={() => {
+                        setFilterCriteria("all");
+                        setFilterValue("high");
+                        setSearchQuery("");
+                      }}
+                      className="mt-2"
+                    >
+                      Limpar filtros
+                    </Button>
+                  )}
+                </div>
+              ) : 
+              (
+                filteredTopClients.map((client, index) => (
                 <div key={client.id} className="flex items-start space-x-4 p-3 rounded-lg border">
                   <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-700">
                     {index === 0 ? (
@@ -358,7 +520,8 @@ export default function ClientsPage() {
                     Top {index + 1}
                   </Badge>
                 </div>
-              ))}
+              )))
+            }
             </div>
           </CardContent>
         </Card>

@@ -483,6 +483,10 @@ export default function FinancePage() {
                               <Label htmlFor="phone">Telefone</Label>
                               <Input id="phone" placeholder="(00) 00000-0000" />
                             </div>
+                            <div className="grid gap-2">
+                            <Label htmlFor="name">CPF</Label>
+                            <Input id="name" placeholder="000.000.000-00" />
+                          </div>
                           </div>
                         </div>
                       </div>

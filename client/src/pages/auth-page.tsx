@@ -33,7 +33,7 @@ import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
 
 const loginSchema = z.object({
-  username: z.string().min(1, {
+  email: z.string().min(1, {
     message: "Nome de usuário é obrigatório",
   }),
   password: z.string().min(1, {
@@ -47,9 +47,6 @@ const registerSchema = z.object({
   }),
   email: z.string().email({
     message: "Email inválido",
-  }),
-  username: z.string().min(3, {
-    message: "Nome de usuário deve ter pelo menos 3 caracteres",
   }),
   password: z.string().min(6, {
     message: "Senha deve ter pelo menos 6 caracteres",
@@ -77,7 +74,7 @@ export default function AuthPage() {
   const loginForm = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
@@ -87,7 +84,6 @@ export default function AuthPage() {
     defaultValues: {
       name: "",
       email: "",
-      username: "",
       password: "",
     },
   });
@@ -192,15 +188,15 @@ export default function AuthPage() {
                   <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                     <FormField
                       control={loginForm.control}
-                      name="username"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome de usuário</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <User className="ml-2 h-5 w-5 text-muted-foreground" />
                               <Input 
-                                placeholder="Digite seu nome de usuário" 
+                                placeholder="Digite seu Email" 
                                 className="border-0 focus-visible:ring-0" 
                                 {...field} 
                               />
@@ -332,28 +328,6 @@ export default function AuthPage() {
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome de usuário</FormLabel>
-                          <FormControl>
-                            <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
-                              <User className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                placeholder="Escolha um nome de usuário" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
-                              />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     <FormField
                       control={registerForm.control}
                       name="password"

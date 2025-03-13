@@ -18,7 +18,7 @@ const MemoryStoreSession = MemoryStore(session);
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByemail(email: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
@@ -87,8 +87,8 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserByemail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
   }
 
@@ -362,7 +362,7 @@ export class DatabaseStorage implements IStorage {
 
       // Add an admin user for initial access
       const admin = await this.createUser({
-        username: "123456",
+        email: "123456",
         password: "123456", // Plain text password as requested
         name: "Administrator",
         email: adminEmail,

@@ -13,7 +13,6 @@ import {
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
@@ -74,16 +73,6 @@ export class SupabaseStorage implements IStorage {
       .from('users')
       .select('*')
       .eq('id', id)
-      .single();
-    if (error) throw error;
-    return data;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username)
       .single();
     if (error) throw error;
     return data;

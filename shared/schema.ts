@@ -5,7 +5,6 @@ import { z } from "zod";
 // User model for authentication
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
@@ -91,7 +90,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({ i
 
 // Auth schemas for login
 export const loginSchema = z.object({
-  email: z.string().min(1, "Username is required"),
+  email: z.string().min(1, "Email is required"),
   password: z.string().min(1, "Password is required"),
 });
 

@@ -29,14 +29,14 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy(async (email, password, done) => {
       try {
-        console.log(`Attempting login with username: ${username}`);
-        const user = await storage.getUserByUsername(username);
+        console.log(`Attempting login with email: ${email}`);
+        const user = await storage.getUserByemail(email);
         console.log("User found:", user ? "Yes" : "No");
 
         if (!user) {
-          return done(null, false, { message: "Incorrect username or password" });
+          return done(null, false, { message: "Incorrect email or password" });
         }
 
         // SIMPLIFIED AUTHENTICATION FOR DEVELOPMENT
@@ -57,7 +57,7 @@ export function setupAuth(app: Express) {
           console.warn("Bcrypt comparison failed:", bcryptError);
         }
 
-        return done(null, false, { message: "Incorrect username or password" });
+        return done(null, false, { message: "Incorrect email or password" });
       } catch (error) {
         console.error("Authentication error:", error);
         return done(error);
@@ -82,9 +82,9 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      const existingUser = await storage.getUserByUsername(req.body.username);
+      const existingUser = await storage.getUserByemail(req.body.email);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "email already exists" });
       }
 
       // For development, use plain text password

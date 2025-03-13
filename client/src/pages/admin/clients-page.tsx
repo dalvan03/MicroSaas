@@ -156,7 +156,6 @@ export default function ClientsPage() {
 
   // Form schema for new client
   const formSchema = z.object({
-    username: z.string().min(1, { message: "Username é obrigatório" }),
     password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
     name: z.string().min(1, { message: "Nome é obrigatório" }),
     email: z.string().email({ message: "Email inválido" }),
@@ -169,7 +168,6 @@ export default function ClientsPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
       password: "",
       name: "",
       email: "",

@@ -788,33 +788,8 @@ export default function SchedulePage() {
               )}
             </CardContent>
           </Card>
-          <Card className="w-full">
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-                {filteredAppointments.map((appointment) => (
-                  <div key={appointment.id} className="p-4 border rounded-lg w-full">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-medium">
-                          {services.find((s) => s.id === appointment.serviceId)?.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {professionals.find((p) => p.id === appointment.professionalId)?.name}
-                        </p>
-                      </div>
-                      {getStatusBadge(appointment.status)}
-                    </div>
-                    <div className="text-sm">
-                      <p>{appointment.startTime} - {appointment.endTime}</p>
-                      {appointment.notes && (
-                        <p className="mt-2 text-muted-foreground">{appointment.notes}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        </div>
+        <div>
           <Card className="w-full">
             <CardHeader>
               <CardTitle>Horário de Funcionamento</CardTitle>
@@ -831,7 +806,7 @@ export default function SchedulePage() {
               />
             </CardContent>
           </Card>
-        </div>
+          </div>
       </div>
     </Sidebar>
   );

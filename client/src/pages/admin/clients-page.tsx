@@ -44,7 +44,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter, CalendarRange, Edit } from "lucide-react";
+import { Search, Plus, MoreVertical, User as UserIcon, Instagram, Phone, Scissors, UserCheck, Award, Star, Filter, CalendarRange, Edit, ClipboardList } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Appointment } from "@shared/schema";
@@ -796,7 +796,7 @@ export default function ClientsPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-center border rounded-md mt-2">
-                    <Calendar className="h-8 w-8 mb-2 text-muted-foreground" />
+                    <ClipboardList className="h-8 w-8 mb-2 text-muted-foreground" />
                     <p className="text-muted-foreground">Nenhum agendamento encontrado</p>
                   </div>
                 )}

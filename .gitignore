@@ -6,8 +6,8 @@ dist/
 server/public/
 
 # Arquivos de configuração de ambiente e segredos
-#.env
-#.env.*
+.env
+.env.*
 
 # Banco de dados
 *.db
@@ -21,3 +21,4 @@ server/public/
 # Artefatos de build
 vite.config.ts*
 *.tar.gz
+package.json

@@ -11,6 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table";
 import {
   Card,
@@ -33,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange } from "lucide-react";
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange, Search, Plus } from "lucide-react";
 import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -431,87 +432,194 @@ export default function FinancePage() {
           </Card>
         </div>
 
-        {/* nova venda */}
+        {/* Nova venda */}
         <Card>
           <CardHeader>
             <CardTitle>Nova venda</CardTitle>
             <CardDescription>
-              Insira uma nova venda.
+              Registre uma nova venda de serviço ou produto.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isTransactionsLoading ? (
-              <div className="text-center py-4">Carregando transações...</div>
-            ) : sortedDates.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                Nenhuma transação encontrada para este período.
-              </div>
-            ) : (
-              <div>
-                {sortedDates.map((date) => (
-                  <div key={date} className="mb-6">
-                    <h3 className="text-sm font-medium mb-2">
-                      {format(new Date(date), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </h3>
-
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tipo</TableHead>
-                          <TableHead>Descrição</TableHead>
-                          <TableHead className="text-right">Valor</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {groupedTransactions[date].map((transaction) => (
-                          <TableRow key={transaction.id}>
-                            <TableCell>
-                              {transaction.type === "income" ? (
-                                <div className="flex items-center text-green-600">
-                                  <PlusCircle className="h-4 w-4 mr-1" />
-                                  <span>Receita</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center text-red-600">
-                                  <MinusCircle className="h-4 w-4 mr-1" />
-                                  <span>Despesa</span>
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell>{transaction.description}</TableCell>
-                            <TableCell className={cn(
-                              "text-right font-medium",
-                              transaction.type === "income" ? "text-green-600" : "text-red-600"
-                            )}>
-                              {transaction.type === "income" ? "+" : "-"}R$ {transaction.amount.toFixed(2)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-
-                    <div className="flex justify-between items-center mt-2 px-3">
-                      <div className="text-sm text-muted-foreground">
-                        Total do dia:
+            <div className="space-y-4">
+              {/* Cliente */}
+              <div className="space-y-2">
+                <Label htmlFor="client-search">Cliente</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="client-search" 
+                    placeholder="Buscar cliente por nome..." 
+                    className="pl-8"
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Cliente não encontrado? 
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="link" className="p-0 h-auto font-normal" type="button">
+                        Cadastrar novo cliente
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Novo Cliente</DialogTitle>
+                        <DialogDescription>
+                          Preencha os dados para cadastrar um novo cliente.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-2">
+                        <div className="grid gap-4">
+                          <div className="grid gap-2">
+                            <Label htmlFor="name">Nome</Label>
+                            <Input id="name" placeholder="Nome completo" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="email">Email</Label>
+                              <Input id="email" placeholder="email@exemplo.com" type="email" />
+                            </div>
+                            <div className="grid gap-2">
+                              <Label htmlFor="phone">Telefone</Label>
+                              <Input id="phone" placeholder="(00) 00000-0000" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm font-medium">
-                        {(() => {
-                          const dailyTotal = groupedTransactions[date].reduce((sum, t) => {
-                            return sum + (t.type === "income" ? t.amount : -t.amount);
-                          }, 0);
-
-                          return (
-                            <span className={dailyTotal >= 0 ? "text-green-600" : "text-red-600"}>
-                              {dailyTotal >= 0 ? "+" : ""}R$ {dailyTotal.toFixed(2)}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                      <DialogFooter>
+                        <Button type="button" variant="outline">Cancelar</Button>
+                        <Button type="button">Salvar Cliente</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
-            )}
+
+              {/* Profissional */}
+              <div className="space-y-2">
+                <Label htmlFor="professional">Profissional</Label>
+                <select 
+                  id="professional" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Selecione um profissional</option>
+                  <option value="1">Carlos Ferreira</option>
+                  <option value="2">Juliana Mendes</option>
+                  <option value="3">Roberto Alves</option>
+                </select>
+              </div>
+
+              {/* Serviço */}
+              <div className="space-y-2">
+                <Label htmlFor="service">Serviço</Label>
+                <select 
+                  id="service" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Selecione um serviço</option>
+                  <option value="1">Corte de Cabelo - R$ 50,00</option>
+                  <option value="2">Coloração - R$ 120,00</option>
+                  <option value="3">Manicure - R$ 35,00</option>
+                </select>
+              </div>
+
+              {/* Produtos e Preços */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Produtos e Serviços</Label>
+                  <Button variant="outline" size="sm" type="button">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar Item
+                  </Button>
+                </div>
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Item</TableHead>
+                        <TableHead>Quantidade</TableHead>
+                        <TableHead>Preço Unit.</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Corte de Cabelo</TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="1" 
+                            min="1" 
+                            className="w-16 h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="50.00" 
+                            min="0" 
+                            step="0.01" 
+                            className="w-24 h-8"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">R$ 50,00</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Shampoo Profissional</TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="1" 
+                            min="1" 
+                            className="w-16 h-8"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input 
+                            type="number" 
+                            defaultValue="45.00" 
+                            min="0" 
+                            step="0.01" 
+                            className="w-24 h-8"
+                          />
+                        </TableCell>
+                        <TableCell className="text-right font-medium">R$ 45,00</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remover</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                    <TableFooter>
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-right font-medium">Valor Total:</TableCell>
+                        <TableCell className="text-right font-bold text-lg">R$ 95,00</TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableFooter>
+                  </Table>
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" type="button">Cancelar</Button>
+                <Button variant="outline" type="button">Salvar</Button>
+                <Button type="button" className="bg-green-600 hover:bg-green-700">
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Confirmar Pagamento e Salvar
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -90,10 +90,10 @@ export function Sidebar({ className, children }: SidebarProps) {
       href: "/admin/professionals",
     },
     {
-      icon: <Settings className="mr-2 h-80 w-5" />,
+      icon: <Settings className="mr-2 h-5 w-5" />,
       label: "Settings",
       href: "/admin/settings",
-    },,
+    },
   ];
 
   const handleLogout = () => {

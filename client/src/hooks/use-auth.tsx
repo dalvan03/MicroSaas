@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
 
+  // Obtém o usuário atual chamando o endpoint /api/user
   const {
     data: user,
     error,
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
+  // Mutação para login: chama o endpoint /api/login (que agora usa Supabase Auth no backend)
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
@@ -44,8 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Login bem-sucedido",
         description: `Bem-vindo, ${user.name}!`,
       });
-
-      // Redirect based on role
+      // Redireciona com base no role do usuário
       if (user.role === "admin") {
         setLocation("/admin");
       } else if (user.role === "client") {
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Mutação para registro: chama o endpoint /api/register
   const registerMutation = useMutation({
     mutationFn: async (credentials: InsertUser) => {
       const res = await apiRequest("POST", "/api/register", credentials);
@@ -85,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  // Mutação para logout: chama o endpoint /api/logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");

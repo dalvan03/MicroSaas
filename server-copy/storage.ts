@@ -8,57 +8,57 @@ import {
   workSchedules, type WorkSchedule, type InsertWorkSchedule,
   appointments, type Appointment, type InsertAppointment,
   transactions, type Transaction, type InsertTransaction
-} from "@shared/schema";
+} from "../shared/schema";
 
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
 
   // Professional operations
-  getProfessional(id: number): Promise<Professional | undefined>;
+  getProfessional(id: string): Promise<Professional | undefined>;
   getAllProfessionals(): Promise<Professional[]>;
   createProfessional(professional: InsertProfessional): Promise<Professional>;
-  updateProfessional(id: number, professional: Partial<InsertProfessional>): Promise<Professional | undefined>;
-  deleteProfessional(id: number): Promise<boolean>;
+  updateProfessional(id: string, professional: Partial<InsertProfessional>): Promise<Professional | undefined>;
+  deleteProfessional(id: string): Promise<boolean>;
 
   // Service operations
-  getService(id: number): Promise<Service | undefined>;
+  getService(id: string): Promise<Service | undefined>;
   getAllServices(): Promise<Service[]>;
   createService(service: InsertService): Promise<Service>;
-  updateService(id: number, service: Partial<InsertService>): Promise<Service | undefined>;
-  deleteService(id: number): Promise<boolean>;
+  updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined>;
+  deleteService(id: string): Promise<boolean>;
 
   // Professional-Service operations
-  getProfessionalServices(professionalId: number): Promise<Service[]>;
-  getServiceProfessionals(serviceId: number): Promise<Professional[]>;
+  getProfessionalServices(professionalId: string): Promise<Service[]>;
+  getServiceProfessionals(serviceId: string): Promise<Professional[]>;
   addServiceToProfessional(professionalService: InsertProfessionalService): Promise<ProfessionalService>;
-  removeServiceFromProfessional(professionalId: number, serviceId: number): Promise<boolean>;
+  removeServiceFromProfessional(professionalId: string, serviceId: string): Promise<boolean>;
 
   // Schedule operations
-  getWorkSchedule(professionalId: number): Promise<WorkSchedule[]>;
+  getWorkSchedule(professionalId: string): Promise<WorkSchedule[]>;
   addWorkSchedule(workSchedule: InsertWorkSchedule): Promise<WorkSchedule>;
-  updateWorkSchedule(id: number, workSchedule: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined>;
-  deleteWorkSchedule(id: number): Promise<boolean>;
+  updateWorkSchedule(id: string, workSchedule: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined>;
+  deleteWorkSchedule(id: string): Promise<boolean>;
 
   // Appointment operations
-  getAppointment(id: number): Promise<Appointment | undefined>;
-  getUserAppointments(userId: number): Promise<Appointment[]>;
-  getProfessionalAppointments(professionalId: number): Promise<Appointment[]>;
+  getAppointment(id: string): Promise<Appointment | undefined>;
+  getUserAppointments(userId: string): Promise<Appointment[]>;
+  getProfessionalAppointments(professionalId: string): Promise<Appointment[]>;
   getAppointmentsByDate(date: Date): Promise<Appointment[]>;
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
-  updateAppointment(id: number, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
-  deleteAppointment(id: number): Promise<boolean>;
+  updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
+  deleteAppointment(id: string): Promise<boolean>;
 
   // Transaction operations
-  getTransaction(id: number): Promise<Transaction | undefined>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
   getAllTransactions(): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  updateTransaction(id: number, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
-  deleteTransaction(id: number): Promise<boolean>;
+  updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
+  deleteTransaction(id: string): Promise<boolean>;
 
   // Session store (não implementado; Supabase Auth gerencia sessões)
   sessionStore: any;
@@ -107,7 +107,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(id: string, updateData: Partial<InsertUser>): Promise<User | undefined> {
     const { data, error } = await supabase
       .from('users')
       .update(updateData)
@@ -119,7 +119,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Professional operations
-  async getProfessional(id: number): Promise<Professional | undefined> {
+  async getProfessional(id: string): Promise<Professional | undefined> {
     const { data, error } = await supabase
       .from('professionals')
       .select('*')
@@ -147,7 +147,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateProfessional(id: number, updateData: Partial<InsertProfessional>): Promise<Professional | undefined> {
+  async updateProfessional(id: string, updateData: Partial<InsertProfessional>): Promise<Professional | undefined> {
     const { data, error } = await supabase
       .from('professionals')
       .update(updateData)
@@ -158,7 +158,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async deleteProfessional(id: number): Promise<boolean> {
+  async deleteProfessional(id: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('professionals')
       .delete()
@@ -168,7 +168,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Service operations
-  async getService(id: number): Promise<Service | undefined> {
+  async getService(id: string): Promise<Service | undefined> {
     const { data, error } = await supabase
       .from('services')
       .select('*')
@@ -196,7 +196,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateService(id: number, updateData: Partial<InsertService>): Promise<Service | undefined> {
+  async updateService(id: string, updateData: Partial<InsertService>): Promise<Service | undefined> {
     const { data, error } = await supabase
       .from('services')
       .update(updateData)
@@ -233,7 +233,7 @@ export class SupabaseStorage implements IStorage {
     return servicesData || [];
   }
 
-  async getServiceProfessionals(serviceId: number): Promise<Professional[]> {
+  async getServiceProfessionals(serviceId: string): Promise<Professional[]> {
     const { data: psData, error: psError } = await supabase
       .from('professionalServices')
       .select('*')
@@ -259,7 +259,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async removeServiceFromProfessional(professionalId: number, serviceId: number): Promise<boolean> {
+  async removeServiceFromProfessional(professionalId: string, serviceId: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('professionalServices')
       .delete()
@@ -270,7 +270,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Schedule operations
-  async getWorkSchedule(professionalId: number): Promise<WorkSchedule[]> {
+  async getWorkSchedule(professionalId: string): Promise<WorkSchedule[]> {
     const { data, error } = await supabase
       .from('workSchedules')
       .select('*')
@@ -289,7 +289,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateWorkSchedule(id: number, updateData: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined> {
+  async updateWorkSchedule(id: string, updateData: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined> {
     const { data, error } = await supabase
       .from('workSchedules')
       .update(updateData)
@@ -300,7 +300,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async deleteWorkSchedule(id: number): Promise<boolean> {
+  async deleteWorkSchedule(id: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('workSchedules')
       .delete()
@@ -310,7 +310,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Appointment operations
-  async getAppointment(id: number): Promise<Appointment | undefined> {
+  async getAppointment(id: string): Promise<Appointment | undefined> {
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
@@ -320,7 +320,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async getUserAppointments(userId: number): Promise<Appointment[]> {
+  async getUserAppointments(userId: string): Promise<Appointment[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
@@ -329,7 +329,7 @@ export class SupabaseStorage implements IStorage {
     return data || [];
   }
 
-  async getProfessionalAppointments(professionalId: number): Promise<Appointment[]> {
+  async getProfessionalAppointments(professionalId: string): Promise<Appointment[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select('*')
@@ -358,7 +358,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateAppointment(id: number, updateData: Partial<InsertAppointment>): Promise<Appointment | undefined> {
+  async updateAppointment(id: string, updateData: Partial<InsertAppointment>): Promise<Appointment | undefined> {
     const { data, error } = await supabase
       .from('appointments')
       .update(updateData)
@@ -369,7 +369,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async deleteAppointment(id: number): Promise<boolean> {
+  async deleteAppointment(id: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('appointments')
       .delete()
@@ -379,7 +379,7 @@ export class SupabaseStorage implements IStorage {
   }
 
   // Transaction operations
-  async getTransaction(id: number): Promise<Transaction | undefined> {
+  async getTransaction(id: string): Promise<Transaction | undefined> {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -407,7 +407,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async updateTransaction(id: number, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
+  async updateTransaction(id: string, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
     const { data, error } = await supabase
       .from('transactions')
       .update(updateData)
@@ -418,7 +418,7 @@ export class SupabaseStorage implements IStorage {
     return data;
   }
 
-  async deleteTransaction(id: number): Promise<boolean> {
+  async deleteTransaction(id: string): Promise<boolean> {
     const { error, data } = await supabase
       .from('transactions')
       .delete()

@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, subDays, subMonths, startOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { DollarSign, Calendar as CalendarIcon, TrendingUp, Scissors, Award, ArrowUpRight, CalendarRange } from "lucide-react";
+import { DollarSign, Calendar as CalendarIcon, TrendingUp, Scissors, Award, ArrowUpRight, CalendarRange, Eye, EyeOff } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -40,6 +40,7 @@ export default function ProfessionalPerformancePage() {
   });
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [hideValues, setHideValues] = useState(false);
   const isMobile = useMobile();
   
   // Calculate date ranges
@@ -265,7 +266,23 @@ export default function ProfessionalPerformancePage() {
     <Sidebar>
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold tracking-tight">Desempenho Profissionais</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Desempenho Profissionais</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setHideValues(!hideValues)}
+              title={hideValues ? "Mostrar valores" : "Ocultar valores"}
+            >
+              {hideValues ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+              <span className="sr-only">{hideValues ? "Mostrar valores" : "Ocultar valores"}</span>
+            </Button>
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Tabs
@@ -360,11 +377,15 @@ export default function ProfessionalPerformancePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <div className="text-sm text-muted-foreground">Receita</div>
-                    <div className="text-xl font-bold text-green-600">R$ {revenue.toFixed(2)}</div>
+                    <div className="text-xl font-bold text-green-600">
+                      {hideValues ? "R$ ******" : `R$ ${revenue.toFixed(2)}`}
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-sm text-muted-foreground">Comissão</div>
-                    <div className="text-xl font-bold text-red-600">R$ {commission.toFixed(2)}</div>
+                    <div className="text-xl font-bold text-red-600">
+                      {hideValues ? "R$ ******" : `R$ ${commission.toFixed(2)}`}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4 space-y-1">
@@ -426,7 +447,7 @@ export default function ProfessionalPerformancePage() {
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold text-green-600">
-                            R$ {comparisonData.currentPeriod.revenue.toFixed(2)}
+                            {hideValues ? "R$ ******" : `R$ ${comparisonData.currentPeriod.revenue.toFixed(2)}`}
                           </div>
                           <div className="flex items-center mt-1">
                             <Badge className={cn(
@@ -437,7 +458,7 @@ export default function ProfessionalPerformancePage() {
                               {Math.round(comparisonData.changes.revenue)}%
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              vs. período anterior (R$ {comparisonData.previousPeriod.revenue.toFixed(2)})
+                              vs. período anterior ({hideValues ? "R$ ******" : `R$ ${comparisonData.previousPeriod.revenue.toFixed(2)}`})
                             </span>
                           </div>
                         </CardContent>
@@ -449,7 +470,7 @@ export default function ProfessionalPerformancePage() {
                         </CardHeader>
                         <CardContent>
                           <div className="text-2xl font-bold text-red-600">
-                            R$ {comparisonData.currentPeriod.commission.toFixed(2)}
+                            {hideValues ? "R$ ******" : `R$ ${comparisonData.currentPeriod.commission.toFixed(2)}`}
                           </div>
                           <div className="flex items-center mt-1">
                             <Badge className={cn(
@@ -460,7 +481,7 @@ export default function ProfessionalPerformancePage() {
                               {Math.round(comparisonData.changes.commission)}%
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              vs. período anterior (R$ {comparisonData.previousPeriod.commission.toFixed(2)})
+                              vs. período anterior ({hideValues ? "R$ ******" : `R$ ${comparisonData.previousPeriod.commission.toFixed(2)}`})
                             </span>
                           </div>
                         </CardContent>

@@ -34,7 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange, Search, Plus } from "lucide-react";
+import { DollarSign, ArrowUpCircle, ArrowDownCircle, CalendarIcon, PlusCircle, MinusCircle, Filter, X, Edit, CalendarRange, Search, Plus, Eye, EyeOff } from "lucide-react";
 import { format, subDays, subMonths, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,7 @@ export default function FinancePage() {
     to: new Date(),
   });
   const [newTransactionOpen, setNewTransactionOpen] = useState(false);
+  const [hideValues, setHideValues] = useState(false);
   const isMobile = useMobile();
 
   // Calculate date ranges
@@ -386,10 +387,28 @@ export default function FinancePage() {
               <CardTitle className="text-sm font-medium">
                 Receitas
               </CardTitle>
-              <ArrowUpCircle className="h-4 w-4 text-green-500" />
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setHideValues(!hideValues)}
+                  title={hideValues ? "Mostrar valores" : "Ocultar valores"}
+                >
+                  {hideValues ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  <span className="sr-only">{hideValues ? "Mostrar valores" : "Ocultar valores"}</span>
+                </Button>
+                <ArrowUpCircle className="h-4 w-4 text-green-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">R$ {income.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {hideValues ? "R$ ******" : `R$ ${income.toFixed(2)}`}
+              </div>
               <p className="text-xs text-muted-foreground">
                 No período selecionado
               </p>
@@ -404,7 +423,9 @@ export default function FinancePage() {
               <ArrowDownCircle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">R$ {expenses.toFixed(2)}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {hideValues ? "R$ ******" : `R$ ${expenses.toFixed(2)}`}
+              </div>
               <p className="text-xs text-muted-foreground">
                 No período selecionado
               </p>
@@ -423,7 +444,7 @@ export default function FinancePage() {
                 "text-2xl font-bold",
                 balance >= 0 ? "text-green-600" : "text-red-600"
               )}>
-                R$ {balance.toFixed(2)}
+                {hideValues ? "R$ ******" : `R$ ${balance.toFixed(2)}`}
               </div>
               <p className="text-xs text-muted-foreground">
                 No período selecionado

@@ -19,7 +19,7 @@ export function ProtectedRoute({ component: Component, path, ...rest }) {
         if (user.role === "client" && isAdminRoute) {
           navigate("/booking");
         } else if (user.role === "admin" && isClientRoute) {
-          navigate("/admin");
+          navigate("/admin/finance");
         }
       }
     }

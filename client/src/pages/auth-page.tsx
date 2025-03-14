@@ -65,7 +65,7 @@ export default function AuthPage() {
   useEffect(() => {
     if (user) {
       if (user.role === "admin") {
-        navigate("/admin");
+        navigate("/admin/finance");
       } else if (user.role === "client") {
         navigate("/booking");
       } else {

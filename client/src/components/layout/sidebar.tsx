@@ -171,7 +171,7 @@ export function Sidebar({ className, children }: SidebarProps) {
       )}
       <main className={cn(
         "flex-1 min-h-screen",
-        isMobile ? "pt-16 px-4" : "md:pl-[240px] p-8"
+        isMobile ? "pt-16 px-4" : "md:pl-[260px] p-8"
       )}>
         {children}
       </main>

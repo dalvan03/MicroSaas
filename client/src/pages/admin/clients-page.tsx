@@ -277,7 +277,7 @@ export default function ClientsPage() {
                   Filtros
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80">
+              <PopoverContent className="w-auto min-w-[320px] max-w-[800px]">
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <h4 className="font-medium leading-none">Filtrar Clientes</h4>
@@ -317,6 +317,7 @@ export default function ClientsPage() {
                             onSelect={setDateRange}
                             numberOfMonths={isMobile ? 1 : 2}
                             locale={ptBR}
+                            className="rounded-md border"
                           />
                           <div className="pt-2 text-sm text-center text-muted-foreground">
                             {dateRange?.from ? (

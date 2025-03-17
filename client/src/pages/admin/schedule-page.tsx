@@ -63,6 +63,9 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { ScheduleSelector } from "@/components/schedule-selector";
 
+// Import mock data for demonstration purposes
+import { mockAppointments, mockUsers, mockProfessionals, mockServices } from "@/data/mock-appointments";
+
 export default function SchedulePage() {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -92,7 +95,7 @@ export default function SchedulePage() {
   ];
 
   // Fetch appointments for the selected date
-  const { data: appointments = [], isLoading: isAppointmentsLoading } = useQuery<Appointment[]>({
+  const { data: appointments = mockAppointments, isLoading: isAppointmentsLoading } = useQuery<Appointment[]>({
     queryKey: ["/api/appointments", format(selectedDate, "yyyy-MM-dd")],
     enabled: !!selectedDate,
     refetchOnWindowFocus: false,
@@ -101,17 +104,17 @@ export default function SchedulePage() {
   });
 
   // Fetch professionals
-  const { data: professionals = [] } = useQuery<Professional[]>({
+  const { data: professionals = mockProfessionals } = useQuery<Professional[]>({
     queryKey: ["/api/professionals"],
   });
 
   // Fetch services
-  const { data: services = [] } = useQuery<Service[]>({
+  const { data: services = mockServices } = useQuery<Service[]>({
     queryKey: ["/api/services"],
   });
 
   // Fetch users
-  const { data: users = [] } = useQuery<any[]>({
+  const { data: users = mockUsers } = useQuery<any[]>({
     queryKey: ["/api/users"],
   });
 
@@ -737,44 +740,69 @@ export default function SchedulePage() {
                       );
 
                       return (
-                        <div key={timeSlot} className="grid grid-cols-[80px_1fr] hover:bg-gray-50">
-                          <div className="py-0.5 text-[10px] text-gray-500 border-r">{timeSlot}</div>
+                        <div key={timeSlot} className="grid grid-cols-[80px_1fr] hover:bg-gray-50 min-h-[30px]">
+                          <div className="py-1 text-[10px] text-gray-500 border-r flex items-center justify-center">{timeSlot}</div>
                           <div className="grid grid-cols-1 divide-x">
                             {filters.professionalId ? (
-                              <div className="relative h-5 p-0.25">
+                              <div className="relative min-h-[30px] p-0.25">
                                 {slotAppointments
                                   .filter((appointment: Appointment) => appointment.professionalId.toString() === filters.professionalId)
-                                  .map((appointment: Appointment) => {
+                                  .map((appointment: Appointment, index: number) => {
                                     const service = services.find(s => s.id === appointment.serviceId);
                                     const user = users.find(u => u.id === appointment.userId);
+                                    const professional = professionals.find(p => p.id === appointment.professionalId);
+                                    const totalAppointments = slotAppointments.filter(app => app.professionalId.toString() === filters.professionalId).length;
+                                    const height = totalAppointments > 1 ? `calc(100% / ${totalAppointments})` : '100%';
+                                    const top = totalAppointments > 1 ? `calc(${index} * ${height})` : '0';
+                                    
                                     return (
                                       <div
                                         key={appointment.id}
-                                        className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
+                                        className={`absolute m-0.25 rounded border p-1 text-[9px] leading-none overflow-hidden ${index % 3 === 0 ? 'bg-purple-100 border-purple-300' : index % 3 === 1 ? 'bg-blue-100 border-blue-300' : 'bg-green-100 border-green-300'}`}
+                                        style={{
+                                          top,
+                                          height,
+                                          left: 0,
+                                          right: 0
+                                        }}
                                       >
-                                        <div className="font-medium">{user?.name || `Cliente ${appointment.userId}`}</div>
-                                        <div className="text-purple-700">{service?.name || "Serviço"}</div>
+                                        <div className="font-medium truncate">{user?.name || `Cliente ${appointment.userId}`}</div>
+                                        <div className={`truncate ${index % 3 === 0 ? 'text-purple-700' : index % 3 === 1 ? 'text-blue-700' : 'text-green-700'}`}>{service?.name || "Serviço"}</div>
                                       </div>
                                     );
                                   })}
                               </div>
                             ) : (
                               professionals.map(professional => {
-                                const profAppointment = slotAppointments.find((app: Appointment) => app.professionalId === professional.id);
+                                const profAppointments = slotAppointments.filter((app: Appointment) => app.professionalId === professional.id);
                                 return (
-                                  <div key={professional.id} className="relative h-5 p-0.25">
-                                    {profAppointment && (
-                                      <div
-                                        className="absolute inset-0 m-0.25 rounded bg-purple-100 border border-purple-300 p-0.25 text-[9px] leading-none overflow-hidden"
-                                      >
-                                        <div className="font-medium">
-                                          {users.find(u => u.id === profAppointment.userId)?.name || `Cliente ${profAppointment.userId}`}
+                                  <div key={professional.id} className="relative min-h-[30px] p-0.25">
+                                    {profAppointments.length > 0 && profAppointments.map((appointment, index) => {
+                                      const service = services.find(s => s.id === appointment.serviceId);
+                                      const user = users.find(u => u.id === appointment.userId);
+                                      const totalAppointments = profAppointments.length;
+                                      const height = totalAppointments > 1 ? `calc(100% / ${totalAppointments})` : '100%';
+                                      const top = totalAppointments > 1 ? `calc(${index} * ${height})` : '0';
+                                      
+                                      return (
+                                        <div
+                                          key={appointment.id}
+                                          className={`absolute m-0.25 rounded border p-1 text-[9px] leading-none overflow-hidden ${index % 3 === 0 ? 'bg-purple-100 border-purple-300' : index % 3 === 1 ? 'bg-blue-100 border-blue-300' : 'bg-green-100 border-green-300'}`}
+                                          style={{
+                                            top,
+                                            height,
+                                            left: 0,
+                                            right: 0
+                                          }}
+                                        >
+                                          <div className="font-medium truncate">{user?.name || `Cliente ${appointment.userId}`}</div>
+                                          <div className={`truncate ${index % 3 === 0 ? 'text-purple-700' : index % 3 === 1 ? 'text-blue-700' : 'text-green-700'}`}>
+                                            {service?.name || "Serviço"}
+                                          </div>
+                                          <div className="text-[8px] text-gray-500 truncate">{professional.name}</div>
                                         </div>
-                                        <div className="text-purple-700">
-                                          {services.find(s => s.id === profAppointment.serviceId)?.name || "Serviço"}
-                                        </div>
-                                      </div>
-                                    )}
+                                      );
+                                    })}
                                   </div>
                                 );
                               })

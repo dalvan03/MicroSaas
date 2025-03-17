@@ -10,7 +10,7 @@ export const users = sqliteTable("users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   address: text("address"),
-  role: text("role").notNull().default("client"),  // 'client' or 'admin'
+  role: text("role").notNull().default("authenticated"),  // 'authenticated' or 'admin'
   instagram: text("instagram"),
   profilePicture: text("profile_picture"),
 });

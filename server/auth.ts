@@ -4,11 +4,12 @@ import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import { storage } from "./storage";
-import { User } from "@shared/schema";
+import { User as SharedUser } from "@shared/schema";
+import { Request, Response, NextFunction } from 'express';
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User extends SharedUser {}
   }
 }
 
@@ -102,12 +103,12 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+  app.post("/api/login", (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate("local", (err: Error | null, user: Express.User | false, info: { message: string }) => {
       if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info?.message || "Invalid credentials" });
-
-      req.login(user, (err) => {
+      if (!user) return res.status(401).json({ message: info?.message || "Incorrect email or password" });
+  
+      req.login(user, (err: Error) => {
         if (err) return next(err);
         return res.status(200).json(user);
       });

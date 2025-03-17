@@ -99,7 +99,7 @@ export default function ClientsPage() {
   });
 
   // Filter clients (only users with role "client")
-  const clients = allUsers.filter(user => user.role === "client");
+  const clients = allUsers.filter(user => user.role === "authenticated");
 
   // Fetch appointments for client details
   const { data: clientAppointments = [] } = useQuery<Appointment[]>({
@@ -181,7 +181,7 @@ export default function ClientsPage() {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     createClientMutation.mutate({
       ...values,
-      role: "client",
+      role: "authenticated",
       profilePicture: "",
     });
   };

@@ -47,9 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Bem-vindo, ${user.name}!`,
       });
       // Redireciona com base no role do usuário
+      console.log("User: ", user);
       if (user.role === "admin") {
         setLocation("/admin");
-      } else if (user.role === "client") {
+      } else if (user.role === "authenticated") {
         setLocation("/booking");
       } else {
         setLocation("/");

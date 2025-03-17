@@ -18,6 +18,7 @@ import ProfessionalsPage from "@/pages/admin/professionals-page";
 import ProfessionalPerformancePage from "@/pages/admin/professional-performance-page";
 import TransactionsPage from "@/pages/admin/transactions-page";
 import LandingPage from "@/pages/landing-page";
+import AuthCallback from "./pages/auth-callback";
 
 function Router() {
   return (
@@ -27,20 +28,21 @@ function Router() {
 
       {/* Auth Route */}
       <Route path="/auth" component={AuthPage} />
+      <Route path="/auth/callback" component={AuthCallback} />
 
       {/* Client Routes */}
-      <ProtectedRoute path="/booking" component={BookingPage} />
+      <Route path="/booking" component={BookingPage} />
 
       {/* Admin Routes */}
-      <ProtectedRoute path="/admin" component={DashboardPage} />
-      <ProtectedRoute path="/admin/schedule" component={SchedulePage} />
-      <ProtectedRoute path="/admin/clients" component={ClientsPage} />
-      <ProtectedRoute path="/admin/finance" component={FinancePage} />
-      <ProtectedRoute path="/admin/transactions" component={TransactionsPage} />
-      <ProtectedRoute path="/admin/reports" component={ReportsPage} />
-      <ProtectedRoute path="/admin/services" component={ServicesPage} />
-      <ProtectedRoute path="/admin/professionals" component={ProfessionalsPage} />
-      <ProtectedRoute path="/admin/professional-performance" component={ProfessionalPerformancePage} />
+      <Route path="/admin" component={DashboardPage} />
+      <Route path="/admin/schedule" component={SchedulePage} />
+      <Route path="/admin/clients" component={ClientsPage} />
+      <Route path="/admin/finance" component={FinancePage} />
+      <Route path="/admin/transactions" component={TransactionsPage} />
+      <Route path="/admin/reports" component={ReportsPage} />
+      <Route path="/admin/services" component={ServicesPage} />
+      <Route path="/admin/professionals" component={ProfessionalsPage} />
+      <Route path="/admin/professional-performance" component={ProfessionalPerformancePage} />
 
       {/* Fallback to 404 */}
       <Route component={NotFound} />

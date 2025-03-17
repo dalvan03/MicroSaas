@@ -25,32 +25,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Scissors, User, Mail, Lock, Facebook, Apple } from "lucide-react";
+import { Scissors, User, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import supabase from "@/lib/supabaseClient";
 import { FaGoogle, FaFacebook, FaApple } from "react-icons/fa";
 import { Separator } from "@/components/ui/separator";
 
 const loginSchema = z.object({
-  email: z.string().min(1, {
-    message: "Nome de usuário é obrigatório",
-  }),
-  password: z.string().min(1, {
-    message: "Senha é obrigatória",
-  }),
+  email: z.string().min(1, { message: "Email é obrigatório" }),
+  password: z.string().min(1, { message: "Senha é obrigatória" }),
 });
 
 const registerSchema = z.object({
-  name: z.string().min(1, {
-    message: "Nome é obrigatório",
-  }),
-  email: z.string().email({
-    message: "Email inválido",
-  }),
-  password: z.string().min(6, {
-    message: "Senha deve ter pelo menos 6 caracteres",
-  }),
+  name: z.string().min(1, { message: "Nome é obrigatório" }),
+  email: z.string().email({ message: "Email inválido" }),
+  password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
 });
 
 export default function AuthPage() {
@@ -58,15 +49,15 @@ export default function AuthPage() {
   const [_, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<string>("login");
 
-  // Redirect if already logged in
+  // Redireciona se já estiver logado
   useEffect(() => {
     if (user) {
       if (user.role === "admin") {
         navigate("/admin");
-      } else if (user.role === "client") {
+      } else if (user.role === "authenticated") {
         navigate("/booking");
       } else {
-        navigate("/");
+        navigate("/booking");
       }
     }
   }, [user, navigate]);
@@ -95,7 +86,7 @@ export default function AuthPage() {
   const onRegisterSubmit = (values: z.infer<typeof registerSchema>) => {
     registerMutation.mutate({
       ...values,
-      role: "client",
+      role: "authenticated",
       address: "",
       phone: "",
       instagram: "",
@@ -103,25 +94,20 @@ export default function AuthPage() {
     });
   };
 
-  // Social login handlers - serão implementados quando as APIs estiverem disponíveis
-  const handleGoogleLogin = () => {
-    // Implementação futura
-    console.log("Login com Google");
-  };
-
-  const handleAppleLogin = () => {
-    // Implementação futura
-    console.log("Login com Apple");
-  };
-
-  const handleFacebookLogin = () => {
-    // Implementação futura
-    console.log("Login com Facebook");
+  // Função para iniciar o login social
+  const handleSocialLogin = async (provider: "google" | "apple" | "facebook") => {
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider,
+      options: {redirectTo: "http://localhost:5000/auth/callback",},
+    });
+    if (error) {
+      console.error("Social login error:", error);
+    }
   };
 
   return (
     <div className="flex min-h-screen flex-col-reverse md:flex-row">
-      {/* Login/Register Form */}
+      {/* Formulário de Login/Cadastro */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
@@ -142,12 +128,12 @@ export default function AuthPage() {
 
               {/* Login Form */}
               <TabsContent value="login">
-                {/* Social Login Buttons */}
+                {/* Botões de Login Social */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleGoogleLogin}
+                    onClick={() => handleSocialLogin("google")}
                     type="button"
                   >
                     <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
@@ -156,7 +142,7 @@ export default function AuthPage() {
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleAppleLogin}
+                    onClick={() => handleSocialLogin("apple")}
                     type="button"
                   >
                     <FaApple className="mr-2 h-4 w-4" />
@@ -165,7 +151,7 @@ export default function AuthPage() {
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleFacebookLogin}
+                    onClick={() => handleSocialLogin("facebook")}
                     type="button"
                   >
                     <FaFacebook className="mr-2 h-4 w-4 text-blue-600" />
@@ -242,12 +228,12 @@ export default function AuthPage() {
 
               {/* Register Form */}
               <TabsContent value="register">
-                {/* Social Register Buttons */}
+                {/* Botões de Cadastro Social */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleGoogleLogin}
+                    onClick={() => handleSocialLogin("google")}
                     type="button"
                   >
                     <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
@@ -256,7 +242,7 @@ export default function AuthPage() {
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleAppleLogin}
+                    onClick={() => handleSocialLogin("apple")}
                     type="button"
                   >
                     <FaApple className="mr-2 h-4 w-4" />
@@ -265,7 +251,7 @@ export default function AuthPage() {
                   <Button 
                     variant="outline" 
                     className="w-full" 
-                    onClick={handleFacebookLogin}
+                    onClick={() => handleSocialLogin("facebook")}
                     type="button"
                   >
                     <FaFacebook className="mr-2 h-4 w-4 text-blue-600" />

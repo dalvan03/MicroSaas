@@ -16,7 +16,7 @@ export function ProtectedRoute({ component: Component, path, ...rest }) {
         const isAdminRoute = path?.startsWith("/admin");
         const isClientRoute = path === "/booking";
 
-        if (user.role === "client" && isAdminRoute) {
+        if (user.role === "authenticated" && isAdminRoute) {
           navigate("/booking");
         } else if (user.role === "admin" && isClientRoute) {
           navigate("/admin");

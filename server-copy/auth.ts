@@ -21,7 +21,8 @@ router.post('/api/login', async (req: Request, res: Response, next: NextFunction
   // Autentica com Supabase Auth
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user || !data.session) {
-    return res.status(401).json({ error: 'Invalid credentials.' });
+    console.error('Error logging in:', error);
+    return res.status(401).json({ error: 'Supabase recusou a solicitação de login. Invalid Credentials' });
   }
   const { user, session } = data;
 
@@ -29,6 +30,8 @@ router.post('/api/login', async (req: Request, res: Response, next: NextFunction
   if (session.access_token) {
     try {
       // A chave SUPABASE_JWT_SECRET deve estar definida nas variáveis de ambiente
+      console.log("SUPABASE_JWT_SECRET:", process.env.SUPABASE_JWT_SECRET);
+
       const decoded = jwt.verify(session.access_token, process.env.SUPABASE_JWT_SECRET!);
       console.log("JWT validated:", decoded);
     } catch (err) {
@@ -40,7 +43,7 @@ router.post('/api/login', async (req: Request, res: Response, next: NextFunction
   // Cria a sessão Express com os dados do usuário autenticado
   req.session.user = {
     id: user.id,
-    email: user.email,
+    email: user.email || '',
     name: user.user_metadata.name,
     role: user.user_metadata.role,
   };
@@ -78,7 +81,7 @@ router.post('/api/register', async (req: Request, res: Response, next: NextFunct
   // Cria a sessão Express para acesso imediato
   req.session.user = {
     id: data.user.id,
-    email: data.user.email,
+    email: data.user.email || '',
     name: data.user.user_metadata.name,
     role: data.user.user_metadata.role,
   };

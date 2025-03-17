@@ -1,6 +1,14 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import * as schema from "@shared/schema";
+// server-copy/db.ts
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-const sqlite = new Database('microsaas.db');
-export const db = drizzle(sqlite, { schema });
+dotenv.config();
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL!;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
+
+if (!supabaseUrl) throw new Error('supabaseUrl is required.');
+if (!supabaseKey) throw new Error('supabaseAnonKey is required.');
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+

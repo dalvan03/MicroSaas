@@ -1,28 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session"; // Importa o express-session
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import dotenv from 'dotenv';
-
-dotenv.config(); // Carrega as variáveis de ambiente
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Adiciona o middleware de sessão
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "default_secret", // Utilize uma variável de ambiente em produção
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: app.get("env") === "production", // true se estiver em produção com HTTPS
-    },
-  })
-);
-
-// Middleware de log para as rotas /api
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -56,43 +39,41 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Middleware global de tratamento de erro
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
+
     res.status(status).json({ message });
     throw err;
   });
 
-  // Configuração do Vite em desenvolvimento; caso contrário, servir os arquivos estáticos
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // Define a porta a partir da variável de ambiente ou usa 5000 por padrão
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
   const startServer = (retryPort = port) => {
-    server
-      .listen(
-        {
-          port: retryPort,
-          host: "127.0.0.1",
-        },
-        () => {
-          log(`serving on port ${retryPort}`);
-        }
-      )
-      .on("error", (err: any) => {
-        if (err.code === "EADDRINUSE") {
-          log(`Port ${retryPort} is already in use, trying ${retryPort + 1}`);
-          startServer(retryPort + 1);
-        } else {
-          console.error("Server error:", err);
-        }
-      });
+    server.listen({
+      port: retryPort,
+      host: "127.0.0.1",
+    }, () => {
+      log(`serving on port ${retryPort}`);
+    }).on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        log(`Port ${retryPort} is already in use, trying ${retryPort + 1}`);
+        startServer(retryPort + 1);
+      } else {
+        console.error('Server error:', err);
+      }
+    });
   };
-
+  
   startServer();
 })();

@@ -1,129 +1,107 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
-import session from "express-session";
-import bcrypt from "bcrypt";
-import { storage } from "./storage";
-import { User as SharedUser } from "@shared/schema";
-import { Request, Response, NextFunction } from 'express';
+// server/auth.tsx
+import express, { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { supabase } from './db'; // Certifique-se de que o supabase client está configurado corretamente
 
-declare global {
-  namespace Express {
-    interface User extends SharedUser {}
+const router = express.Router();
+
+/**
+ * Endpoint de Login:
+ * - Recebe email e password
+ * - Autentica via Supabase Auth (signInWithPassword)
+ * - Valida o JWT (session.access_token) usando a chave SUPABASE_JWT_SECRET
+ * - Cria a sessão do Express com os dados do usuário
+ */
+router.post('/api/login', async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Missing credentials: email and password are required.' });
   }
-}
 
-export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "super-secret-salon-booking-key",
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  // Autentica com Supabase Auth
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error || !data.user || !data.session) {
+    console.error('Error logging in:', error);
+    return res.status(401).json({ error: 'Supabase recusou a solicitação de login. Invalid Credentials' });
+  }
+  const { user, session } = data;
+
+  // Validação opcional do JWT (session.access_token)
+  if (session.access_token) {
+    try {
+      // A chave SUPABASE_JWT_SECRET deve estar definida nas variáveis de ambiente
+      console.log("SUPABASE_JWT_SECRET:", process.env.SUPABASE_JWT_SECRET);
+
+      const decoded = jwt.verify(session.access_token, process.env.SUPABASE_JWT_SECRET!);
+      console.log("JWT validated:", decoded);
+    } catch (err) {
+      console.error("Invalid JWT", err);
+      return res.status(401).json({ error: 'Invalid token.' });
     }
+  }
+
+  // Cria a sessão Express com os dados do usuário autenticado
+  req.session.user = {
+    id: user.id,
+    email: user.email || '',
+    name: user.user_metadata.name,
+    role: user.user_metadata.role,
   };
 
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
+  return res.json({ user: req.session.user });
+});
 
-  passport.use(
-    new LocalStrategy(async (email, password, done) => {
-      try {
-        console.log(`Attempting login with email: ${email}`);
-        const user = await storage.getUserByemail(email);
-        console.log("User found:", user ? "Yes" : "No");
+/**
+ * Endpoint de Registro:
+ * - Recebe email, password e demais dados (name, phone, role)
+ * - Registra o usuário via Supabase Auth (signUp)
+ * - Opcional: a criação do perfil na tabela pública pode ser feita via trigger no banco
+ * - Cria a sessão Express para acesso imediato (caso não haja verificação de email)
+ */
+router.post('/api/register', async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password, name, phone, role } = req.body;
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'Missing required fields.' });
+  }
 
-        if (!user) {
-          return done(null, false, { message: "Incorrect email or password" });
-        }
-
-        // SIMPLIFIED AUTHENTICATION FOR DEVELOPMENT
-        // Allow direct password comparison for development
-        if (password === user.password || password === "123456") {
-          console.log("Password matched directly");
-          return done(null, user);
-        }
-
-        // Try bcrypt comparison as fallback
-        try {
-          const isMatch = await bcrypt.compare(password, user.password);
-          console.log("Bcrypt comparison result:", isMatch);
-          if (isMatch) {
-            return done(null, user);
-          }
-        } catch (bcryptError) {
-          console.warn("Bcrypt comparison failed:", bcryptError);
-        }
-
-        return done(null, false, { message: "Incorrect email or password" });
-      } catch (error) {
-        console.error("Authentication error:", error);
-        return done(error);
-      }
-    }),
-  );
-
-  // Serialize user to session
-  passport.serializeUser((user: Express.User, done) => {
-    done(null, user.id);
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name, phone, role: role || 'client' },
+    },
   });
+  if (error || !data.user) {
+    return res.status(400).json({ error: error?.message || 'Error registering user.' });
+  }
 
-  // Deserialize user from session
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
+  // Opcional: se não utilizar trigger para criar perfil, insira aqui o código para criar
+  // o registro na tabela public.users.
+
+  // Cria a sessão Express para acesso imediato
+  req.session.user = {
+    id: data.user.id,
+    email: data.user.email || '',
+    name: data.user.user_metadata.name,
+    role: data.user.user_metadata.role,
+  };
+
+  return res.json({ user: req.session.user });
+});
+
+/**
+ * Endpoint de Logout:
+ * - Efetua signOut no Supabase Auth
+ * - Destrói a sessão do Express
+ */
+router.post('/api/logout', async (req: Request, res: Response, next: NextFunction) => {
+  await supabase.auth.signOut();
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ error: 'Error terminating session.' });
     }
+    return res.status(204).end();
   });
+});
 
-  app.post("/api/register", async (req, res, next) => {
-    try {
-      const existingUser = await storage.getUserByemail(req.body.email);
-      if (existingUser) {
-        return res.status(400).json({ message: "email already exists" });
-      }
-
-      // For development, use plain text password
-      const user = await storage.createUser({
-        ...req.body,
-        password: req.body.password, // Store password as plain text for now
-      });
-
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json(user);
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  app.post("/api/login", (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate("local", (err: Error | null, user: Express.User | false, info: { message: string }) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).json({ message: info?.message || "Incorrect email or password" });
-  
-      req.login(user, (err: Error) => {
-        if (err) return next(err);
-        return res.status(200).json(user);
-      });
-    })(req, res, next);
-  });
-
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
-  });
-
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
-  });
-}
+export default router;

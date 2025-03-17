@@ -1,4 +1,6 @@
-import { 
+import { supabase } from "./db";
+import { format } from "date-fns";
+import {
   users, type User, type InsertUser,
   professionals, type Professional, type InsertProfessional,
   services, type Service, type InsertService,
@@ -6,462 +8,413 @@ import {
   workSchedules, type WorkSchedule, type InsertWorkSchedule,
   appointments, type Appointment, type InsertAppointment,
   transactions, type Transaction, type InsertTransaction
-} from "@shared/schema";
-import session from "express-session";
-import MemoryStore from "memorystore";
-import { db } from "./db";
-import { eq, and, inArray } from "drizzle-orm";
-import { format } from "date-fns";
-
-const MemoryStoreSession = MemoryStore(session);
+} from "../shared/schema";
 
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByemail(email: string): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
 
   // Professional operations
-  getProfessional(id: number): Promise<Professional | undefined>;
+  getProfessional(id: string): Promise<Professional | undefined>;
   getAllProfessionals(): Promise<Professional[]>;
   createProfessional(professional: InsertProfessional): Promise<Professional>;
-  updateProfessional(id: number, professional: Partial<InsertProfessional>): Promise<Professional | undefined>;
-  deleteProfessional(id: number): Promise<boolean>;
+  updateProfessional(id: string, professional: Partial<InsertProfessional>): Promise<Professional | undefined>;
+  deleteProfessional(id: string): Promise<boolean>;
 
   // Service operations
-  getService(id: number): Promise<Service | undefined>;
+  getService(id: string): Promise<Service | undefined>;
   getAllServices(): Promise<Service[]>;
   createService(service: InsertService): Promise<Service>;
-  updateService(id: number, service: Partial<InsertService>): Promise<Service | undefined>;
-  deleteService(id: number): Promise<boolean>;
+  updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined>;
+  deleteService(id: string): Promise<boolean>;
 
   // Professional-Service operations
-  getProfessionalServices(professionalId: number): Promise<Service[]>;
-  getServiceProfessionals(serviceId: number): Promise<Professional[]>;
+  getProfessionalServices(professionalId: string): Promise<Service[]>;
+  getServiceProfessionals(serviceId: string): Promise<Professional[]>;
   addServiceToProfessional(professionalService: InsertProfessionalService): Promise<ProfessionalService>;
-  removeServiceFromProfessional(professionalId: number, serviceId: number): Promise<boolean>;
+  removeServiceFromProfessional(professionalId: string, serviceId: string): Promise<boolean>;
 
   // Schedule operations
-  getWorkSchedule(professionalId: number): Promise<WorkSchedule[]>;
+  getWorkSchedule(professionalId: string): Promise<WorkSchedule[]>;
   addWorkSchedule(workSchedule: InsertWorkSchedule): Promise<WorkSchedule>;
-  updateWorkSchedule(id: number, workSchedule: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined>;
-  deleteWorkSchedule(id: number): Promise<boolean>;
+  updateWorkSchedule(id: string, workSchedule: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined>;
+  deleteWorkSchedule(id: string): Promise<boolean>;
 
   // Appointment operations
-  getAppointment(id: number): Promise<Appointment | undefined>;
-  getUserAppointments(userId: number): Promise<Appointment[]>;
-  getProfessionalAppointments(professionalId: number): Promise<Appointment[]>;
+  getAppointment(id: string): Promise<Appointment | undefined>;
+  getUserAppointments(userId: string): Promise<Appointment[]>;
+  getProfessionalAppointments(professionalId: string): Promise<Appointment[]>;
   getAppointmentsByDate(date: Date): Promise<Appointment[]>;
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
-  updateAppointment(id: number, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
-  deleteAppointment(id: number): Promise<boolean>;
+  updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
+  deleteAppointment(id: string): Promise<boolean>;
 
   // Transaction operations
-  getTransaction(id: number): Promise<Transaction | undefined>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
   getAllTransactions(): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  updateTransaction(id: number, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
-  deleteTransaction(id: number): Promise<boolean>;
+  updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
+  deleteTransaction(id: string): Promise<boolean>;
 
-  // Session store
-  sessionStore: session.Store;
+  // Session store (não implementado; Supabase Auth gerencia sessões)
+  sessionStore: any;
 }
 
-export class DatabaseStorage implements IStorage {
-  sessionStore: session.Store;
-
-  constructor() {
-    this.sessionStore = new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
-
-    // Add seed data for initial testing
-    this.seedData();
-  }
+export class SupabaseStorage implements IStorage {
+  // Supabase gerencia sessões; portanto, sessionStore não é necessário.
+  sessionStore = null;
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async getUserByemail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+  async getUser(id: string): Promise<User | undefined> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+    if (error) throw error;
+    return data || [];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
+    const { data, error } = await supabase
+      .from('users')
+      .insert([insertUser])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User | undefined> {
-    const [user] = await db.update(users)
-      .set(updateData)
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+  async updateUser(id: string, updateData: Partial<InsertUser>): Promise<User | undefined> {
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
   // Professional operations
-  async getProfessional(id: number): Promise<Professional | undefined> {
-    const [professional] = await db.select().from(professionals).where(eq(professionals.id, id));
-    return professional;
+  async getProfessional(id: string): Promise<Professional | undefined> {
+    const { data, error } = await supabase
+      .from('professionals')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   }
 
   async getAllProfessionals(): Promise<Professional[]> {
-    return await db.select().from(professionals);
+    const { data, error } = await supabase
+      .from('professionals')
+      .select('*');
+    if (error) throw error;
+    return data || [];
   }
 
   async createProfessional(insertProfessional: InsertProfessional): Promise<Professional> {
-    const [professional] = await db.insert(professionals).values(insertProfessional).returning();
-    return professional;
+    const { data, error } = await supabase
+      .from('professionals')
+      .insert([insertProfessional])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateProfessional(id: number, updateData: Partial<InsertProfessional>): Promise<Professional | undefined> {
-    const [professional] = await db.update(professionals)
-      .set(updateData)
-      .where(eq(professionals.id, id))
-      .returning();
-    return professional;
+  async updateProfessional(id: string, updateData: Partial<InsertProfessional>): Promise<Professional | undefined> {
+    const { data, error } = await supabase
+      .from('professionals')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async deleteProfessional(id: number): Promise<boolean> {
-    const result = await db.delete(professionals).where(eq(professionals.id, id));
-    return result.count > 0;
+  async deleteProfessional(id: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('professionals')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return !!data;
   }
 
   // Service operations
-  async getService(id: number): Promise<Service | undefined> {
-    const [service] = await db.select().from(services).where(eq(services.id, id));
-    return service;
+  async getService(id: string): Promise<Service | undefined> {
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   }
 
   async getAllServices(): Promise<Service[]> {
-    return await db.select().from(services);
+    const { data, error } = await supabase
+      .from('services')
+      .select('*');
+    if (error) throw error;
+    return data || [];
   }
 
   async createService(insertService: InsertService): Promise<Service> {
-    const [service] = await db.insert(services).values(insertService).returning();
-    return service;
+    const { data, error } = await supabase
+      .from('services')
+      .insert([insertService])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateService(id: number, updateData: Partial<InsertService>): Promise<Service | undefined> {
-    const [service] = await db.update(services)
-      .set(updateData)
-      .where(eq(services.id, id))
-      .returning();
-    return service;
+  async updateService(id: string, updateData: Partial<InsertService>): Promise<Service | undefined> {
+    const { data, error } = await supabase
+      .from('services')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async deleteService(id: number): Promise<boolean> {
-    // Check if service exists first
-    const service = await this.getService(id);
-    if (!service) {
-      return false;
-    }
-
-    // Delete related appointments first
-    await db.delete(appointments).where(eq(appointments.serviceId, id));
-    
-    // Then delete related professional_services records
-    await db.delete(professionalServices).where(eq(professionalServices.serviceId, id));
-    
-    // Finally delete the service
-    const result = await db.delete(services).where(eq(services.id, id));
-    return result.count > 0;
+  async deleteService(id: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('services')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return !!data;
   }
 
   // Professional-Service operations
-  async getProfessionalServices(professionalId: number): Promise<Service[]> {
-    const ps = await db.select()
-      .from(professionalServices)
-      .where(eq(professionalServices.professionalId, professionalId));
-
-    const serviceIds = ps.map(p => p.serviceId);
-
-    if (serviceIds.length === 0) {
-      return [];
-    }
-
-    // Usando inArray em vez de multiple OR conditions
-    return await db.select()
-      .from(services)
-      .where(inArray(services.id, serviceIds));
+  async getProfessionalServices(professionalId: string): Promise<Service[]> {
+    const { data: psData, error: psError } = await supabase
+      .from('professionalServices')
+      .select('*')
+      .eq('professionalId', professionalId);
+    if (psError) throw psError;
+    if (!psData || psData.length === 0) return [];
+    const serviceIds = psData.map((ps: any) => ps.serviceId);
+    const { data: servicesData, error: servicesError } = await supabase
+      .from('services')
+      .select('*')
+      .in('id', serviceIds);
+    if (servicesError) throw servicesError;
+    return servicesData || [];
   }
 
-  async getServiceProfessionals(serviceId: number): Promise<Professional[]> {
-    console.log(`Buscando profissionais para o serviço com ID: ${serviceId}`);
-
-    const ps = await db.select()
-      .from(professionalServices)
-      .where(eq(professionalServices.serviceId, serviceId));
-
-    const professionalIds = ps.map(p => p.professionalId);
-    console.log(`IDs de profissionais encontrados: ${professionalIds.join(', ')}`);
-
-    if (professionalIds.length === 0) {
-      console.log("Nenhum profissional encontrado para este serviço");
-      return [];
-    }
-
-    // Usando inArray em vez de multiple OR conditions
-    const result = await db.select()
-      .from(professionals)
-      .where(inArray(professionals.id, professionalIds));
-
-    console.log(`Profissionais encontrados: ${result.length}`);
-    console.log(`Detalhes: ${JSON.stringify(result)}`);
-
-    return result;
+  async getServiceProfessionals(serviceId: string): Promise<Professional[]> {
+    const { data: psData, error: psError } = await supabase
+      .from('professionalServices')
+      .select('*')
+      .eq('serviceId', serviceId);
+    if (psError) throw psError;
+    if (!psData || psData.length === 0) return [];
+    const professionalIds = psData.map((ps: any) => ps.professionalId);
+    const { data: professionalsData, error: professionalsError } = await supabase
+      .from('professionals')
+      .select('*')
+      .in('id', professionalIds);
+    if (professionalsError) throw professionalsError;
+    return professionalsData || [];
   }
 
   async addServiceToProfessional(insertProfessionalService: InsertProfessionalService): Promise<ProfessionalService> {
-    const [professionalService] = await db.insert(professionalServices)
-      .values(insertProfessionalService)
-      .returning();
-    return professionalService;
+    const { data, error } = await supabase
+      .from('professionalServices')
+      .insert([insertProfessionalService])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async removeServiceFromProfessional(professionalId: number, serviceId: number): Promise<boolean> {
-    const result = await db.delete(professionalServices)
-      .where(
-        and(
-          eq(professionalServices.professionalId, professionalId),
-          eq(professionalServices.serviceId, serviceId)
-        )
-      );
-    return result.count > 0;
+  async removeServiceFromProfessional(professionalId: string, serviceId: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('professionalServices')
+      .delete()
+      .eq('professionalId', professionalId)
+      .eq('serviceId', serviceId);
+    if (error) throw error;
+    return !!data;
   }
 
   // Schedule operations
-  async getWorkSchedule(professionalId: number): Promise<WorkSchedule[]> {
-    return await db.select()
-      .from(workSchedules)
-      .where(eq(workSchedules.professionalId, professionalId));
+  async getWorkSchedule(professionalId: string): Promise<WorkSchedule[]> {
+    const { data, error } = await supabase
+      .from('workSchedules')
+      .select('*')
+      .eq('professionalId', professionalId);
+    if (error) throw error;
+    return data || [];
   }
 
   async addWorkSchedule(insertWorkSchedule: InsertWorkSchedule): Promise<WorkSchedule> {
-    const [workSchedule] = await db.insert(workSchedules)
-      .values(insertWorkSchedule)
-      .returning();
-    return workSchedule;
+    const { data, error } = await supabase
+      .from('workSchedules')
+      .insert([insertWorkSchedule])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateWorkSchedule(id: number, updateData: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined> {
-    const [workSchedule] = await db.update(workSchedules)
-      .set(updateData)
-      .where(eq(workSchedules.id, id))
-      .returning();
-    return workSchedule;
+  async updateWorkSchedule(id: string, updateData: Partial<InsertWorkSchedule>): Promise<WorkSchedule | undefined> {
+    const { data, error } = await supabase
+      .from('workSchedules')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async deleteWorkSchedule(id: number): Promise<boolean> {
-    const result = await db.delete(workSchedules).where(eq(workSchedules.id, id));
-    return result.count > 0;
+  async deleteWorkSchedule(id: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('workSchedules')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return !!data;
   }
 
   // Appointment operations
-  async getAppointment(id: number): Promise<Appointment | undefined> {
-    const [appointment] = await db.select().from(appointments).where(eq(appointments.id, id));
-    return appointment;
+  async getAppointment(id: string): Promise<Appointment | undefined> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async getUserAppointments(userId: number): Promise<Appointment[]> {
-    return await db.select()
-      .from(appointments)
-      .where(eq(appointments.userId, userId));
+  async getUserAppointments(userId: string): Promise<Appointment[]> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('userId', userId);
+    if (error) throw error;
+    return data || [];
   }
 
-  async getProfessionalAppointments(professionalId: number): Promise<Appointment[]> {
-    return await db.select()
-      .from(appointments)
-      .where(eq(appointments.professionalId, professionalId));
+  async getProfessionalAppointments(professionalId: string): Promise<Appointment[]> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('professionalId', professionalId);
+    if (error) throw error;
+    return data || [];
   }
 
   async getAppointmentsByDate(date: Date): Promise<Appointment[]> {
-    const dateStr = format(date, "yyyy-MM-dd");
-    console.log(`Fetching appointments for date: ${dateStr}`);
-    const result = await db.select()
-      .from(appointments)
-      .where(eq(appointments.date, dateStr));
-    console.log(`Found ${result.length} appointments for date ${dateStr}`);
-    return result;
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('date', dateStr);
+    if (error) throw error;
+    return data || [];
   }
 
   async createAppointment(insertAppointment: InsertAppointment): Promise<Appointment> {
-    console.log(`Criando agendamento: ${JSON.stringify(insertAppointment)}`);
-
-    const [appointment] = await db.insert(appointments)
-      .values(insertAppointment)
-      .returning();
-
-    console.log(`Agendamento criado: ${JSON.stringify(appointment)}`);
-    return appointment;
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert([insertAppointment])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateAppointment(id: number, updateData: Partial<InsertAppointment>): Promise<Appointment | undefined> {
-    const [appointment] = await db.update(appointments)
-      .set(updateData)
-      .where(eq(appointments.id, id))
-      .returning();
-    return appointment;
+  async updateAppointment(id: string, updateData: Partial<InsertAppointment>): Promise<Appointment | undefined> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async deleteAppointment(id: number): Promise<boolean> {
-    const result = await db.delete(appointments).where(eq(appointments.id, id));
-    return result.count > 0;
+  async deleteAppointment(id: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return !!data;
   }
 
   // Transaction operations
-  async getTransaction(id: number): Promise<Transaction | undefined> {
-    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
-    return transaction;
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return data;
   }
 
   async getAllTransactions(): Promise<Transaction[]> {
-    return await db.select().from(transactions);
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*');
+    if (error) throw error;
+    return data || [];
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const [transaction] = await db.insert(transactions)
-      .values(insertTransaction)
-      .returning();
-    return transaction;
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert([insertTransaction])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async updateTransaction(id: number, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
-    const [transaction] = await db.update(transactions)
-      .set(updateData)
-      .where(eq(transactions.id, id))
-      .returning();
-    return transaction;
+  async updateTransaction(id: string, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
+    const { data, error } = await supabase
+      .from('transactions')
+      .update(updateData)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
   }
 
-  async deleteTransaction(id: number): Promise<boolean> {
-    const result = await db.delete(transactions).where(eq(transactions.id, id));
-    return result.count > 0;
-  }
-
-  private async seedData() {
-    try {
-      // Check if admin user already exists
-      const adminEmail = "admin@salao.com";
-      const existingAdmin = await db.select().from(users).where(eq(users.email, adminEmail));
-      
-      if (existingAdmin.length > 0) {
-        console.log("Admin user already exists, skipping seed data");
-        return;
-      }
-
-      // Add an admin user for initial access
-      const admin = await this.createUser({
-        email: "123456",
-        password: "123456", // Plain text password as requested
-        name: "Administrator",
-        email: adminEmail,
-        role: "admin",
-        phone: "",
-        address: "",
-        instagram: "",
-        profilePicture: ""
-      });
-
-      // Add sample services
-      const haircut = await this.createService({
-        name: "Haircut",
-        description: "Basic haircut with styling",
-        duration: 30,
-        price: 35.0,
-        active: true
-      });
-
-      const hairColoring = await this.createService({
-        name: "Hair Coloring",
-        description: "Full hair coloring service",
-        duration: 120,
-        price: 100.0,
-        active: true
-      });
-
-      const manicure = await this.createService({
-        name: "Manicure",
-        description: "Basic manicure service",
-        duration: 45,
-        price: 25.0,
-        active: true
-      });
-
-      // Add sample professionals
-      const john = await this.createProfessional({
-        name: "John Smith",
-        phone: "11 9999-8888",
-        email: "john@salao.com",
-        cpf: "123.456.789-00",
-        address: "123 Main St, City",
-        profilePicture: "",
-        active: true
-      });
-
-      const maria = await this.createProfessional({
-        name: "Maria Silva",
-        phone: "11 9999-7777",
-        email: "maria@salao.com",
-        cpf: "987.654.321-00",
-        address: "456 Palm Ave, City",
-        profilePicture: "",
-        active: true
-      });
-
-      // Assign services to professionals
-      await this.addServiceToProfessional({
-        professionalId: john.id,
-        serviceId: haircut.id
-      });
-
-      await this.addServiceToProfessional({
-        professionalId: john.id,
-        serviceId: hairColoring.id
-      });
-
-      await this.addServiceToProfessional({
-        professionalId: maria.id,
-        serviceId: hairColoring.id
-      });
-
-      await this.addServiceToProfessional({
-        professionalId: maria.id,
-        serviceId: manicure.id
-      });
-
-      // Set work schedules
-      for (let i = 1; i <= 5; i++) { // Monday to Friday
-        await this.addWorkSchedule({
-          professionalId: john.id,
-          dayOfWeek: i,
-          startTime: '09:00:00',
-          endTime: '18:00:00'
-        });
-
-        await this.addWorkSchedule({
-          professionalId: maria.id,
-          dayOfWeek: i,
-          startTime: '10:00:00',
-          endTime: '19:00:00'
-        });
-      }
-
-      console.log("Database seeded successfully");
-    } catch (error) {
-      console.error("Error seeding database:", error);
-    }
+  async deleteTransaction(id: string): Promise<boolean> {
+    const { error, data } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    return !!data;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new SupabaseStorage();

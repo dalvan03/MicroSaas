@@ -17,6 +17,7 @@ import ServicesPage from "@/pages/admin/services-page";
 import ProfessionalsPage from "@/pages/admin/professionals-page";
 import ProfessionalPerformancePage from "@/pages/admin/professional-performance-page";
 import TransactionsPage from "@/pages/admin/transactions-page";
+import SettingsPage from "@/pages/admin/settings-page";
 import LandingPage from "@/pages/landing-page";
 import AuthCallback from "./pages/auth-callback";
 

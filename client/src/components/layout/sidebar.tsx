@@ -11,7 +11,8 @@ import {
   X,
   LogOut,
   Award,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, ReactNode } from "react";
@@ -48,11 +49,11 @@ export function Sidebar({ className, children }: SidebarProps) {
       label: "Vendas",
       href: "/admin/finance",
     },
-    {
-      icon: <Home className="mr-2 h-5 w-5" />,
-      label: "Dashboard",
-      href: "/admin",
-    },
+    // {
+    //   icon: <Home className="mr-2 h-5 w-5" />,
+    //   label: "Dashboard",
+    //   href: "/admin",
+    // },
     {
       icon: <Calendar className="mr-2 h-5 w-5" />,
       label: "Agenda",
@@ -73,11 +74,11 @@ export function Sidebar({ className, children }: SidebarProps) {
       label: "Desempenho Profissionais",
       href: "/admin/professional-performance",
     },
-    {
-      icon: <BarChart className="mr-2 h-5 w-5" />,
-      label: "Relatórios",
-      href: "/admin/reports",
-    },
+    // {
+    //   icon: <BarChart className="mr-2 h-5 w-5" />,
+    //   label: "Relatórios",
+    //   href: "/admin/reports",
+    // },
     {
       icon: <Scissors className="mr-2 h-5 w-5" />,
       label: "Meus Serviços",
@@ -87,6 +88,11 @@ export function Sidebar({ className, children }: SidebarProps) {
       icon: <UserSquare className="mr-2 h-5 w-5" />,
       label: "Profissionais",
       href: "/admin/professionals",
+    },
+    {
+      icon: <Settings className="mr-2 h-5 w-5" />,
+      label: "Settings",
+      href: "/admin/settings",
     },
   ];
 
@@ -165,7 +171,7 @@ export function Sidebar({ className, children }: SidebarProps) {
       )}
       <main className={cn(
         "flex-1 min-h-screen",
-        isMobile ? "pt-16 px-4" : "md:pl-[240px] p-8"
+        isMobile ? "pt-16 px-4" : "md:pl-[260px] p-8"
       )}>
         {children}
       </main>

@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("User: ", user);
       if (user.role === "admin") {
         setLocation("/admin");
-      } else if (user.role === "authenticated") {
+      } else if (user.role === "client") {
         setLocation("/booking");
       } else {
         setLocation("/");

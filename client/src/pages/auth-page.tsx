@@ -95,13 +95,18 @@ export default function AuthPage() {
   };
 
   // Função para iniciar o login social
-  const handleSocialLogin = async (provider: "google" | "apple" | "facebook") => {
-    const { error } = await supabase.auth.signInWithOAuth({ 
+  const handleSocialLogin = async (provider: "google" | "facebook") => {
+    const {data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {redirectTo: "http://localhost:5000/auth/callback",},
+      options: { redirectTo: "http://localhost:5001/auth/callback", },
     });
     if (error) {
       console.error("Social login error:", error);
+    }
+
+    // Abre a URL de autenticação em uma nova aba
+    if (data?.url) {
+      window.open(data.url, "_blank", "width=500,height=600");
     }
   };
 
@@ -130,27 +135,18 @@ export default function AuthPage() {
               <TabsContent value="login">
                 {/* Botões de Login Social */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => handleSocialLogin("google")}
                     type="button"
                   >
                     <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
                     <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={() => handleSocialLogin("apple")}
-                    type="button"
-                  >
-                    <FaApple className="mr-2 h-4 w-4" />
-                    <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Apple</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => handleSocialLogin("facebook")}
                     type="button"
                   >
@@ -181,10 +177,10 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <User className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                placeholder="Digite seu Email" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
+                              <Input
+                                placeholder="Digite seu Email"
+                                className="border-0 focus-visible:ring-0"
+                                {...field}
                               />
                             </div>
                           </FormControl>
@@ -202,11 +198,11 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <Lock className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                type="password" 
-                                placeholder="Digite sua senha" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
+                              <Input
+                                type="password"
+                                placeholder="Digite sua senha"
+                                className="border-0 focus-visible:ring-0"
+                                {...field}
                               />
                             </div>
                           </FormControl>
@@ -215,9 +211,9 @@ export default function AuthPage() {
                       )}
                     />
 
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-purple-700 hover:bg-purple-800" 
+                    <Button
+                      type="submit"
+                      className="w-full bg-purple-700 hover:bg-purple-800"
                       disabled={loginMutation.isPending}
                     >
                       {loginMutation.isPending ? "Entrando..." : "Entrar"}
@@ -230,27 +226,19 @@ export default function AuthPage() {
               <TabsContent value="register">
                 {/* Botões de Cadastro Social */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => handleSocialLogin("google")}
                     type="button"
                   >
                     <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
                     <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Google</span>
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={() => handleSocialLogin("apple")}
-                    type="button"
-                  >
-                    <FaApple className="mr-2 h-4 w-4" />
-                    <span className="sr-only md:not-sr-only md:text-xs md:font-normal">Apple</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
+
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => handleSocialLogin("facebook")}
                     type="button"
                   >
@@ -281,10 +269,10 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <User className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                placeholder="Digite seu nome completo" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
+                              <Input
+                                placeholder="Digite seu nome completo"
+                                className="border-0 focus-visible:ring-0"
+                                {...field}
                               />
                             </div>
                           </FormControl>
@@ -302,11 +290,11 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <Mail className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                type="email" 
-                                placeholder="Digite seu email" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
+                              <Input
+                                type="email"
+                                placeholder="Digite seu email"
+                                className="border-0 focus-visible:ring-0"
+                                {...field}
                               />
                             </div>
                           </FormControl>
@@ -323,11 +311,11 @@ export default function AuthPage() {
                           <FormControl>
                             <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                               <Lock className="ml-2 h-5 w-5 text-muted-foreground" />
-                              <Input 
-                                type="password" 
-                                placeholder="Escolha uma senha" 
-                                className="border-0 focus-visible:ring-0" 
-                                {...field} 
+                              <Input
+                                type="password"
+                                placeholder="Escolha uma senha"
+                                className="border-0 focus-visible:ring-0"
+                                {...field}
                               />
                             </div>
                           </FormControl>
@@ -336,9 +324,9 @@ export default function AuthPage() {
                       )}
                     />
 
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-purple-700 hover:bg-purple-800 mt-3" 
+                    <Button
+                      type="submit"
+                      className="w-full bg-purple-700 hover:bg-purple-800 mt-3"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? "Cadastrando..." : "Cadastrar"}
@@ -353,8 +341,8 @@ export default function AuthPage() {
               {activeTab === "login" ? (
                 <p>
                   Não tem uma conta?{" "}
-                  <Button 
-                    variant="link" 
+                  <Button
+                    variant="link"
                     className="p-0 h-auto text-purple-700"
                     onClick={() => setActiveTab("register")}
                   >
@@ -364,8 +352,8 @@ export default function AuthPage() {
               ) : (
                 <p>
                   Já tem uma conta?{" "}
-                  <Button 
-                    variant="link" 
+                  <Button
+                    variant="link"
                     className="p-0 h-auto text-purple-700"
                     onClick={() => setActiveTab("login")}
                   >

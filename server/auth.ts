@@ -44,7 +44,7 @@ router.post('/api/login', async (req: Request, res: Response, next: NextFunction
   if (session.access_token) {
     try {
       // A chave SUPABASE_JWT_SECRET deve estar definida nas variáveis de ambiente
-      console.log("SUPABASE_JWT_SECRET:", process.env.SUPABASE_JWT_SECRET);
+      // console.log("SUPABASE_JWT_SECRET:", process.env.SUPABASE_JWT_SECRET);
 
       const decoded = jwt.verify(session.access_token, process.env.SUPABASE_JWT_SECRET!);
       console.log("JWT validated:", decoded);

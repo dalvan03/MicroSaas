@@ -1,9 +1,23 @@
 // server/auth.tsx
 import express, { Request, Response, NextFunction } from 'express';
+import session from 'express-session';
 import jwt from 'jsonwebtoken';
 import { supabase } from './db'; // Certifique-se de que o supabase client está configurado corretamente
 
 const router = express.Router();
+
+const sessionSettings: session.SessionOptions = {
+  secret: process.env.SESSION_SECRET || "default-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 anos em milissegundos
+    httpOnly: true, // O cookie não pode ser acessado via JavaScript no cliente
+    secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+  },
+};
+
+router.use(session(sessionSettings));
 
 /**
  * Endpoint de Login:

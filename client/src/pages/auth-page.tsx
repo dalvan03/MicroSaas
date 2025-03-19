@@ -98,7 +98,7 @@ export default function AuthPage() {
   const handleSocialLogin = async (provider: "google" | "facebook") => {
     const {data, error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: "http://localhost:5001/auth/callback", },
+      options: { redirectTo: "http://localhost:5000/auth/callback", },
     });
     if (error) {
       console.error("Social login error:", error);

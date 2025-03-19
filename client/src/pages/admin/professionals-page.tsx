@@ -67,11 +67,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ScheduleSelector } from "@/components/schedule-selector";
-import NewProfessionalDialog from "@/components/Professional/NewProfessionalDialog";
-import EditProfessionalDialog from "@/components/Professional/EditProfessionalDialog";
-import ProfessionalDetailsDialog from "@/components/Professional/ProfessionalDetailsDialog";
-import ProfessionalList from "@/components/Professional/ProfessionalList";
-import DeleteConfirmationDialog from "@/components/Professional/DeleteConfirmationDialog";
 
 export default function ProfessionalsPage() {
   const { toast } = useToast();
@@ -496,44 +491,383 @@ export default function ProfessionalsPage() {
               />
             </div>
 
-            <Button onClick={() => setNewProfessionalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Profissional
-            </Button>
+            <Dialog open={newProfessionalOpen} onOpenChange={setNewProfessionalOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full md:w-auto">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Profissional
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Cadastrar Novo Profissional</DialogTitle>
+                  <DialogDescription>
+                    Preencha os dados abaixo para cadastrar um novo profissional.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmitNewProfessional)} className="space-y-4 pt-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome Completo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nome do profissional" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="email@exemplo.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="tel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Telefone</FormLabel>
+                            <FormControl>
+                              <Input placeholder="(00) 00000-0000" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="cpf"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>CPF</FormLabel>
+                          <FormControl>
+                            <Input placeholder="000.000.000-00" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="profilePicture"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Foto de Perfil</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center gap-4">
+                              {field.value && (
+                                <div className="relative h-16 w-16 rounded-full overflow-hidden border">
+                                  <img
+                                    src={field.value}
+                                    alt="Profile"
+                                    className="h-full w-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    try {
+                                      const uploadedUrl = await uploadImage(file);
+                                      field.onChange(uploadedUrl);
+                                    } catch (err) {
+                                      // ...handle error (ex: useToast)...
+                                    }
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="flex gap-2"
+                                onClick={() => fileInputRef.current?.click()}
+                              >
+                                <Plus className="h-4 w-4" />
+                                {field.value ? "Alterar imagem" : "Adicionar imagem"}
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="active"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>Profissional Ativo</FormLabel>
+                            <FormDescription>
+                              Profissionais inativos não aparecem para agendamento
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setNewProfessionalOpen(false)}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button type="submit" disabled={createProfessionalMutation.isPending}>
+                        {createProfessionalMutation.isPending ? "Cadastrando..." : "Cadastrar Profissional"}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
-        
-        <ProfessionalList
-          professionals={professionals}
-          filteredProfessionals={filteredProfessionals}
-          onViewProfessional={handleViewProfessional}
-          onEditProfessional={handleEditProfessional}
-          onDeleteProfessional={handleDeleteProfessional}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isLoading={isProfessionalsLoading}
-        />
-        
-        <NewProfessionalDialog
-          open={newProfessionalOpen}
-          onOpenChange={setNewProfessionalOpen}
-          form={form}
-          onSubmit={onSubmitNewProfessional}
-          isPending={createProfessionalMutation.isPending}
-        />
-        
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Profissionais</CardTitle>
+            <CardDescription>
+              Gerenciamento de profissionais do estabelecimento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isProfessionalsLoading ? (
+              <div className="text-center py-4">Carregando profissionais...</div>
+            ) : filteredProfessionals.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                {searchQuery ? "Nenhum profissional encontrado com este termo." : "Nenhum profissional cadastrado."}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px] md:w-[300px]">Profissional</TableHead>
+                      <TableHead>Contato</TableHead>
+                      <TableHead className="hidden md:table-cell">CPF</TableHead>
+                      <TableHead className="hidden md:table-cell">Endereço</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProfessionals.map((professional) => (
+                      <TableRow key={professional.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar>
+                              <AvatarFallback>
+                                {professional.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{professional.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <div className="flex items-center">
+                              <Mail className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span className="text-sm">{professional.email}</span>
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span className="text-sm">{professional.phone}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{professional.cpf}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex items-start">
+                            <MapPin className="h-4 w-4 mr-1 mt-0.5 text-muted-foreground shrink-0" />
+                            <span className="text-sm line-clamp-2">{professional.address}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {professional.active ? (
+                            <Badge className="bg-green-600">Ativo</Badge>
+                          ) : (
+                            <Badge variant="outline">Inativo</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleViewProfessional(professional)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteProfessional(professional.id)}
+                              >
+                                <Trash className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Edit Professional Dialog */}
         {editProfessional && (
-          <EditProfessionalDialog
-            open={!!editProfessional}
-            onOpenChange={() => setEditProfessional(null)}
-            form={editForm}
-            onSubmit={onSubmitEditProfessional}
-            isPending={updateProfessionalMutation.isPending}
-          />
+          <Dialog open={!!editProfessional} onOpenChange={(open) => !open && setEditProfessional(null)}>
+            <DialogContent className="sm:max-w-[550px]">
+              <DialogHeader>
+                <DialogTitle>Editar Profissional</DialogTitle>
+                <DialogDescription>
+                  Altere as informações do profissional.
+                </DialogDescription>
+              </DialogHeader>
+
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(onSubmitEditProfessional)} className="space-y-4 pt-4">
+                  <FormField
+                    control={editForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome Completo</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={editForm.control}
+                      name="tel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={editForm.control}
+                    name="cpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name="active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Profissional Ativo</FormLabel>
+                          <FormDescription>
+                            Profissionais inativos não aparecem para agendamento
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditProfessional(null)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={updateProfessionalMutation.isPending}>
+                      {updateProfessionalMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         )}
-        
+
+        {/* Professional Details Dialog */}
         {currentProfessional && (
-          <ProfessionalDetailsDialog
+          <Dialog
             open={professionalDetailsOpen}
             onOpenChange={(open) => {
               setProfessionalDetailsOpen(open);
@@ -543,23 +877,222 @@ export default function ProfessionalsPage() {
                 setScheduleTabOpen(false);
               }
             }}
-            professional={currentProfessional}
-            services={services}
-            professionalServices={professionalServices}
-            workSchedules={workSchedules}
-            toggleService={toggleService}
-            updateCommission={updateCommission}
-            deleteWorkScheduleMutation={deleteWorkScheduleMutation}
-            addWorkScheduleMutation={addWorkScheduleMutation}
-          />
+          >
+            <DialogContent className="sm:max-w-[700px]">
+              <DialogHeader>
+                <DialogTitle>Detalhes do Profissional</DialogTitle>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 pt-4">
+                <div className="flex flex-col items-center">
+                  <Avatar className="w-32 h-32 mb-4">
+                    <AvatarFallback className="text-2xl">
+                      {currentProfessional.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <h3 className="text-lg font-medium">{currentProfessional.name}</h3>
+                  <Badge className={currentProfessional.active ? "bg-green-600 mt-1" : "bg-neutral-600 mt-1"}>
+                    {currentProfessional.active ? "Ativo" : "Inativo"}
+                  </Badge>
+
+                  <div className="w-full mt-6 space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span>{currentProfessional.email}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{currentProfessional.phone}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span>{currentProfessional.cpf}</span>
+                    </div>
+
+                    <div className="flex items-start gap-2 text-sm">
+                      <div className="mt-0.5 shrink-0">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <span>{currentProfessional.address}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-6 w-full">
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditProfessional(currentProfessional)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteProfessional(currentProfessional.id)}
+                    >
+                      <Trash className="h-4 w-4 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Tabs defaultValue="services">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger
+                        value="services"
+                        onClick={() => {
+                          setServicesTabOpen(true);
+                          setScheduleTabOpen(false);
+                        }}
+                      >
+                        Serviços
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="schedule"
+                        onClick={() => {
+                          setScheduleTabOpen(true);
+                          setServicesTabOpen(false);
+                        }}
+                      >
+                        Horários
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="services" className="pt-4">
+                      <h3 className="text-md font-medium mb-4">Serviços Realizados</h3>
+                      <div className="space-y-2">
+                        {services.map((service) => {
+                          const isAssigned = professionalServices.some(s => s.id === service.id);
+
+                          return (
+                            <div key={service.id} className="flex items-start space-x-2 rounded-md border p-3">
+                              <Checkbox
+                                id={`service-${service.id}`}
+                                checked={isAssigned}
+                                onCheckedChange={() => toggleService(service.id)}
+                              />
+                              <div className="flex flex-col w-full">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full">
+                                  <label
+                                    htmlFor={`service-${service.id}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer mb-2 sm:mb-0"
+                                  >
+                                    {service.name}
+                                  </label>
+                                  <div className="flex items-center mt-2 sm:mt-0">
+                                    <span className="text-xs text-muted-foreground mr-2">Comissão:</span>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      className="h-7 w-24 text-xs"
+                                      placeholder="R$ 0,00"
+                                      value={professionalServices.find(s => s.id === service.id)?.commission || 0}
+                                      disabled={false}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onChange={(e) => {
+                                        if (!isAssigned) {
+                                          const value = parseFloat(e.target.value) || 0;
+                                          updateCommission(service.id, value);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                {service.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {service.description}
+                                  </p>
+                                )}
+                                <div className="flex mt-1 gap-4 text-xs text-muted-foreground">
+                                  <span>Duração: {service.duration} min</span>
+                                  <span>Preço: R$ {service.price.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="schedule" className="pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-md font-medium">Horários de Trabalho</h3>
+                      </div>
+
+                      {/* Import the ScheduleSelector component */}
+                      <ScheduleSelector
+                        initialSchedules={workSchedules.map(schedule => ({
+                          dayOfWeek: schedule.dayOfWeek,
+                          startTime: schedule.startTime?.toString() || "08:00",
+                          endTime: schedule.endTime?.toString() || "18:00",
+                          lunchStartTime: "12:00", // Default lunch start time
+                          lunchEndTime: "13:00"   // Default lunch end time
+                        }))}
+                        onSave={(schedules) => {
+                          // First, delete all existing schedules
+                          workSchedules.forEach(schedule => {
+                            deleteWorkScheduleMutation.mutate(schedule.id);
+                          });
+
+                          // Then add all new schedules
+                          schedules.forEach(schedule => {
+                            if (currentProfessional) {
+                              addWorkScheduleMutation.mutate({
+                                professionalId: currentProfessional.id,
+                                ...schedule,
+                              });
+                            }
+                          });
+                        }}
+                        isLoading={addWorkScheduleMutation.isPending || deleteWorkScheduleMutation.isPending}
+                      />
+
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setProfessionalDetailsOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
-        
-        <DeleteConfirmationDialog
-          open={deleteConfirmOpen}
-          onOpenChange={setDeleteConfirmOpen}
-          onConfirm={confirmDeleteProfessional}
-          isPending={deleteProfessionalMutation.isPending}
-        />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Profissional</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir este profissional? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setProfessionalToDelete(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDeleteProfessional}
+                className="bg-red-600 hover:bg-red-700"
+                disabled={deleteProfessionalMutation.isPending}
+              >
+                {deleteProfessionalMutation.isPending ? "Excluindo..." : "Excluir"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Sidebar>
   );

@@ -501,8 +501,8 @@ export default function FinancePage() {
                               <Input id="email" placeholder="email@exemplo.com" type="email" />
                             </div>
                             <div className="grid gap-2">
-                              <Label htmlFor="phone">Telefone</Label>
-                              <Input id="phone" placeholder="(00) 00000-0000" />
+                              <Label htmlFor="tel">Telefone</Label>
+                              <Input id="tel" placeholder="(00) 00000-0000" />
                             </div>
                             <div className="grid gap-2">
                             <Label htmlFor="name">CPF</Label>

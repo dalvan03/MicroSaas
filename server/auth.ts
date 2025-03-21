@@ -67,13 +67,13 @@ router.post('/api/login', async (req: Request, res: Response, next: NextFunction
 
 /**
  * Endpoint de Registro:
- * - Recebe email, password e demais dados (name, phone, role)
+ * - Recebe email, password e demais dados (name, tel, role)
  * - Registra o usuário via Supabase Auth (signUp)
  * - Opcional: a criação do perfil na tabela pública pode ser feita via trigger no banco
  * - Cria a sessão Express para acesso imediato (caso não haja verificação de email)
  */
 router.post('/api/register', async (req: Request, res: Response, next: NextFunction) => {
-  const { email, password, name, phone, role } = req.body;
+  const { email, password, name, tel, role } = req.body;
   if (!email || !password || !name) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
@@ -82,7 +82,7 @@ router.post('/api/register', async (req: Request, res: Response, next: NextFunct
     email,
     password,
     options: {
-      data: { name, phone, role: role || 'client' },
+      data: { name, tel, role: role || 'client' },
     },
   });
   if (error || !data.user) {

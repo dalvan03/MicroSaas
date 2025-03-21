@@ -159,8 +159,7 @@ export default function ClientsPage() {
     password: z.string().min(6, { message: "Senha deve ter pelo menos 6 caracteres" }),
     name: z.string().min(1, { message: "Nome é obrigatório" }),
     email: z.string().email({ message: "Email inválido" }),
-    phone: z.string().optional(),
-    address: z.string().optional(),
+    tel: z.string().optional(),
     instagram: z.string().optional(),
   });
 
@@ -171,8 +170,7 @@ export default function ClientsPage() {
       password: "",
       name: "",
       email: "",
-      phone: "",
-      address: "",
+      tel: "",
       instagram: "",
     },
   });
@@ -196,7 +194,7 @@ export default function ClientsPage() {
       filtered = filtered.filter(client =>
         client.name?.toLowerCase().includes(query) ||
         client.email?.toLowerCase().includes(query) ||
-        (client.phone && client.phone.includes(query))
+        (client.tel && client.tel.includes(query))
       );
     }
 
@@ -431,7 +429,7 @@ export default function ClientsPage() {
 
                       <FormField
                         control={form.control}
-                        name="phone"
+                        name="tel"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Telefone</FormLabel>
@@ -446,7 +444,7 @@ export default function ClientsPage() {
 
                     <FormField
                         control={form.control}
-                        name="phone"
+                        name="tel"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>CPF</FormLabel>
@@ -587,7 +585,7 @@ export default function ClientsPage() {
                           <TableRow key={client.id}>
                             <TableCell className="font-medium">{client.name}</TableCell>
                             <TableCell className="hidden sm:table-cell">{client.email}</TableCell>
-                            <TableCell className="hidden md:table-cell">{client.phone || "-"}</TableCell>
+                            <TableCell className="hidden md:table-cell">{client.tel || "-"}</TableCell>
                             <TableCell className="hidden lg:table-cell">
                               {lastProfessional ? (
                                 <div className="flex items-center gap-2">
@@ -663,7 +661,7 @@ export default function ClientsPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Telefone</p>
-                    <p>{selectedClient.phone || "Não informado"}</p>
+                    <p>{selectedClient.tel || "Não informado"}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Endereço</p>

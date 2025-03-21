@@ -49,8 +49,8 @@ export const mockUsers = [
 
 // Mock data for professionals
 export const mockProfessionals = [
-  { id: 1, name: "Ana Barbosa", email: "ana@salon.com", phone: "(11) 98765-4321", cpf: "123.456.789-00", address: "Rua A, 123", active: true },
-  { id: 2, name: "Pedro Costa", email: "pedro@salon.com", phone: "(11) 91234-5678", cpf: "987.654.321-00", address: "Rua B, 456", active: true }
+  { id: 1, name: "Ana Barbosa", email: "ana@salon.com", tel: "(11) 98765-4321", cpf: "123.456.789-00", address: "Rua A, 123", active: true },
+  { id: 2, name: "Pedro Costa", email: "pedro@salon.com", tel: "(11) 91234-5678", cpf: "987.654.321-00", address: "Rua B, 456", active: true }
 ];
 
 // Mock data for services

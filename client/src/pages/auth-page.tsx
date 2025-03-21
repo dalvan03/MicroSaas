@@ -87,8 +87,7 @@ export default function AuthPage() {
     registerMutation.mutate({
       ...values,
       role: "authenticated",
-      address: "",
-      phone: "",
+      tel: "",
       instagram: "",
       profilePicture: "",
     });

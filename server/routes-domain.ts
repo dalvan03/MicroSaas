@@ -10,6 +10,11 @@ import {
 
 const router = Router();
 
+const domainSchema = z.object({
+  tel: z.string().nonempty("Phone is required"),
+  address: z.string().nonempty("Address is required"),
+});
+
 // Professionals API
 router.get("/api/professionals", async (req, res, next) => {
   try {
@@ -176,6 +181,15 @@ router.delete("/api/professional-services", async (req, res, next) => {
       return res.status(404).json({ message: "Relationship not found" });
     }
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/api/domain", async (req, res, next) => {
+  try {
+    const validatedData = domainSchema.parse(req.body);
+    // ...existing code...
   } catch (error) {
     next(error);
   }

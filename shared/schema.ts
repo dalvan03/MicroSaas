@@ -8,7 +8,7 @@ export const users = sqliteTable("users", {
   password: text("password").notNull(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  phone: text("phone"),
+  tel: text("tel"),
   address: text("address"),
   role: text("role").notNull().default("authenticated"),  // 'authenticated' or 'admin'
   instagram: text("instagram"),
@@ -19,7 +19,7 @@ export const users = sqliteTable("users", {
 export const professionals = sqliteTable("professionals", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
-  phone: text("phone").notNull(),
+  tel: text("tel").notNull(),
   email: text("email").notNull(),
   cpf: text("cpf").notNull().unique(),
   address: text("address").notNull(),

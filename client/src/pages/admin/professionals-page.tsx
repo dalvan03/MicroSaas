@@ -335,7 +335,7 @@ export default function ProfessionalsPage() {
     editForm.reset({
       name: professional.name,
       email: professional.email,
-      tel: professional.phone,
+      tel: professional.tel,
       cpf: professional.cpf,
       profilePicture: professional.profilePicture || "",
       active: professional.active,
@@ -451,7 +451,7 @@ export default function ProfessionalsPage() {
     return (
       professional.name.toLowerCase().includes(query) ||
       professional.email.toLowerCase().includes(query) ||
-      professional.phone.includes(query)
+      professional.tel.includes(query)
     );
   });
 
@@ -703,8 +703,8 @@ export default function ProfessionalsPage() {
                               <span className="text-sm">{professional.email}</span>
                             </div>
                             <div className="flex items-center mt-1">
-                              <Phone className="h-4 w-4 mr-1 text-muted-foreground" />
-                              <span className="text-sm">{professional.phone}</span>
+                              <tel className="h-4 w-4 mr-1 text-muted-foreground" />
+                              <span className="text-sm">{professional.tel}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -903,8 +903,8 @@ export default function ProfessionalsPage() {
                     </div>
 
                     <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{currentProfessional.phone}</span>
+                      <tel className="h-4 w-4 text-muted-foreground" />
+                      <span>{currentProfessional.tel}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-sm">

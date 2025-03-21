@@ -12,7 +12,6 @@ const router = Router();
 
 const domainSchema = z.object({
   tel: z.string().nonempty("Phone is required"),
-  address: z.string().nonempty("Address is required"),
 });
 
 // Professionals API

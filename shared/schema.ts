@@ -9,7 +9,6 @@ export const users = sqliteTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   tel: text("tel"),
-  address: text("address"),
   role: text("role").notNull().default("authenticated"),  // 'authenticated' or 'admin'
   instagram: text("instagram"),
   profilePicture: text("profile_picture"),
@@ -22,7 +21,6 @@ export const professionals = sqliteTable("professionals", {
   tel: text("tel").notNull(),
   email: text("email").notNull(),
   cpf: text("cpf").notNull().unique(),
-  address: text("address").notNull(),
   profilePicture: text("profile_picture"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
 });

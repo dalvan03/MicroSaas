@@ -665,7 +665,7 @@ export default function ClientsPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Endereço</p>
-                    <p>{selectedClient.address || "Não informado"}</p>
+                    
                   </div>
                   {selectedClient.instagram && (
                     <div className="space-y-1">

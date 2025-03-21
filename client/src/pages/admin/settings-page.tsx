@@ -27,7 +27,7 @@ import { Camera, Upload, Store, Instagram, Facebook, Phone, MapPin } from "lucid
 const storeSettingsSchema = z.object({
   storeName: z.string().min(1, "Nome da loja é obrigatório"),
   cnpj: z.string().min(14, "CNPJ deve ter pelo menos 14 caracteres"),
-  address: z.string().min(1, "Endereço é obrigatório"),
+
   instagramUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   whatsappUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   facebookUrl: z.string().url("URL inválida").optional().or(z.literal("")),
@@ -54,7 +54,6 @@ export default function SettingsPage() {
         return {
           storeName: "Minha Loja",
           cnpj: "",
-          address: "",
           instagramUrl: "",
           whatsappUrl: "",
           facebookUrl: "",
@@ -141,12 +140,11 @@ export default function SettingsPage() {
   });
 
   // Inicializa o formulário com as configurações da loja
-  const form = useForm<StoreSettings>({
+  const form = useForm<z.infer<typeof storeSettingsSchema>>({
     resolver: zodResolver(storeSettingsSchema),
     defaultValues: {
       storeName: "",
       cnpj: "",
-      address: "",
       instagramUrl: "",
       whatsappUrl: "",
       facebookUrl: "",
@@ -282,7 +280,6 @@ export default function SettingsPage() {
                         />
                         <FormField
                           control={form.control}
-                          name="address"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Endereço</FormLabel>

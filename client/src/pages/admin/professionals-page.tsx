@@ -116,10 +116,16 @@ export default function ProfessionalsPage() {
   const createProfessionalMutation = useMutation({
     mutationFn: async (data: InsertProfessional) => {
       const res = await apiRequest("POST", "/api/professionals", data);
+      console.log("dataaaa: ",data)
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Server Error:", errorData); // Log server error details
+        throw new Error(errorData.message || "Failed to create professional");
+      }
       return await res.json();
     },
     onSuccess: () => {
-      toast({
+      toast({ 
         title: "Profissional criado",
         description: "O profissional foi cadastrado com sucesso.",
       });
@@ -132,7 +138,7 @@ export default function ProfessionalsPage() {
         description: error.message,
         variant: "destructive",
       });
-      console.log(error)
+      console.error("Client Error:", error); // Log client-side error
     },
   });
 

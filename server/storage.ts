@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import {
   users, type User, type InsertUser,
   professionals, type Professional, type InsertProfessional,
-  services, type Service, type InsertService,
+  type Service, type InsertService,
   professionalServices, type ProfessionalService, type InsertProfessionalService,
   workSchedules, type WorkSchedule, type InsertWorkSchedule,
   appointments, type Appointment, type InsertAppointment,
@@ -171,18 +171,33 @@ export class SupabaseStorage implements IStorage {
     const { data, error } = await supabase
       .from('services')
       .select('*');
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching services - possible RLS issue:", error);
+      throw error;
+    }
     return data || [];
   }
 
   async createService(insertService: InsertService): Promise<Service> {
-    const { data, error } = await supabase
-      .from('services')
-      .insert([insertService])
-      .select('*')
-      .single();
-    if (error) throw error;
-    return data;
+    try {
+      console.log("Inserting service into Supabase:", [insertService]); // Log dos dados enviados
+      const { data, error } = await supabase
+        .from("services")
+        .insert([insertService])
+        .select("*")
+        .single();
+
+      if (error) {
+        console.error("Error inserting service into Supabase:", error.message, error.details, error.hint); // Log detalhado do erro
+        throw error;
+      }
+
+      console.log("Service created successfully:", data); // Log do sucesso
+      return data;
+    } catch (error) {
+      console.error("Unexpected error in createService:", error); // Log de erros inesperados
+      throw error;
+    }
   }
 
   async updateService(id: string, updateData: Partial<InsertService>): Promise<Service | undefined> {

@@ -14,6 +14,16 @@ const domainSchema = z.object({
   tel: z.string().nonempty("Phone is required"),
 });
 
+// Schema de validação para criação de profissionais
+const createProfessionalSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.string().email("Email inválido"),
+  tel: z.string().min(1, "Telefone é obrigatório"),
+  cpf: z.string().min(1, "CPF é obrigatório"),
+  profilePicture: z.string().optional(),
+  active: z.boolean().default(true),
+});
+
 // Professionals API
 router.get("/api/professionals", async (req, res, next) => {
   try {
@@ -39,11 +49,13 @@ router.get("/api/professionals/:id", async (req, res, next) => {
 
 router.post("/api/professionals", async (req, res, next) => {
   try {
-    const validatedData = insertProfessionalSchema.parse(req.body);
-    const professional = await storage.createProfessional(validatedData);
-    res.status(201).json(professional);
+    const validatedData = createProfessionalSchema.parse(req.body);
+    const newProfessional = await storage.createProfessional(validatedData);
+    res.status(201).json(newProfessional);
   } catch (error) {
-    next(error);
+    console.error("Error creating professional:", error);
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    res.status(500).json({ message: errorMessage });
   }
 });
 
@@ -99,11 +111,16 @@ router.get("/api/services/:id", async (req, res, next) => {
 
 router.post("/api/services", async (req, res, next) => {
   try {
-    const validatedData = insertServiceSchema.parse(req.body);
-    const service = await storage.createService(validatedData);
-    res.status(201).json(service);
+    console.log("Request body:", req.body); // Log do corpo da requisição
+    const validatedData = insertServiceSchema.parse(req.body); // Valida os dados recebidos
+    console.log("Validated data:", validatedData); // Log dos dados validados
+
+    const service = await storage.createService(validatedData); // Cria o serviço no Supabase
+    res.status(201).json(service); // Retorna o serviço criado
   } catch (error) {
-    next(error);
+    console.error("Error creating service:", error); // Log detalhado do erro
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+    res.status(500).json({ message: errorMessage }); // Retorna mensagem de erro
   }
 });
 

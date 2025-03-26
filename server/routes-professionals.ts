@@ -9,6 +9,7 @@ router.post('/api/professionals', async (req: Request, res: Response, next: Next
   if (!name || !email || !tel || !cpf) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
+  console.log("chega aqui?")
 
   const { data, error } = await supabase
     .from('profs')
